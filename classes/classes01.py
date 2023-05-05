@@ -16,11 +16,24 @@
 # As an end-user/car-user, you don't need to know how engine will work. You just need to use the engine by calling its function
 # Eg: By switching on START button of the car [ In code its carObject.tunrOnEngine() ; you dont need to know how tunrOnEngine() is implemented. Its called `abstraction` (hiding the complexe things from user) ]
 
+# When you think of class, you dont need to think technically. You think in objects.
+# When you want to implement college register kind app, You can think who will be there in it.
+# There will be students,teachers,principle,...those will be the classes.
+# Lets take STUDENT
+#    -> student registration form in pdf format will be a class.
+#    -> A student 'rajesh' took a printout of it and fill it with his details and submitted to college.
+#           {  val rajesh = new Student("rajesh", 28, "IT",...)  }
+#    -> Now `rajesh` is an real student (object), and many other students follow the same.
+#   n number students mean n number of objects of class `STUDENT`
+
+# This is object oriented/based programming.
+
+
 # TL;DR;
 
 # Animal is a class. Dog,Cat are objects
 
-# class will have what properties(variables) and behaviours(methods). But its kind of plan/idea
+# class will have what properties(variables) and behaviours(methods). But its kind of plan of a building/.
 # Object will make the class into reality.
 # Which means class is concept but has no existence until an object is created.
 # only objects will have memory allocation.
