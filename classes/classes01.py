@@ -1,6 +1,6 @@
 # class is a blueprint of an object.
 
-# GENERAL UNDERSTANDING IN PLAIN/LAYMAN LANGUAGE: (Explain like I am 5) 
+# GENERAL UNDERSTANDING IN PLAIN/LAYMAN LANGUAGE: (Explain like I am 5)
 
 # car is a class/concept/idea. `Toyata Fortuner` is an object/blueprint/instance of the class `car`
 # when you get a good idea to build some car called `X` :
