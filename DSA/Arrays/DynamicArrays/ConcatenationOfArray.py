@@ -22,7 +22,7 @@ from typing import List
 # - ans = [nums[0],nums[1],nums[2],nums[3],nums[0],nums[1],nums[2],nums[3]]
 # - ans = [1,3,2,1,1,3,2,1]
 
-# Easiest problem on all of leetcode. Basically waste of space and time.
+# Easiest problem on all of leetcode.
 class ConcatenationOfArray:
     def getConcatenation1(self, nums: List[int]) -> List[int]:
         ans = nums + nums
