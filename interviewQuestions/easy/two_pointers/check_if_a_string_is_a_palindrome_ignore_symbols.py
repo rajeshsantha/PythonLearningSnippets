@@ -15,23 +15,38 @@ Difficulty: Easy
 
 
 class Solution:
-    def is_palindrome(self, data, *args):
-        """
-        Approach:
-        - Identify the primary data structure and iterate efficiently.
-        - Handle edge cases first (empty input, single item, invalid shape).
-        - Return output in the exact format expected by the interviewer.
+    def is_palindrome(self, data:str) -> bool:
+        left = 0
+        right = len(data)-1
+    
+        while left < right:
+            if not data[left].isalnum() and not data[right].isalnum:
+                if data[left].lower()!=data[right].lower():
+                    return False
+            left+=1
+            right-=1
+        return True
 
-        Time Complexity:
-        - O(n) to O(n log n), depending on the chosen implementation.
+    def is_palindrome_clean(self, data:str) -> bool:
+        left = 0
+        cleaned_data = ''.join([i.lower() for i in data if i.isalnum()])
+        right=len(cleaned_data)-1
 
-        Space Complexity:
-        - O(n) auxiliary space in the general case.
-        """
-        pass
+        while left < right:
+            if cleaned_data[left]!=cleaned_data[right]:
+                return False
+            left+=1
+            right-=1
+        return True
+        
 
+        
 
 if __name__ == "__main__":
     sol = Solution()
     # Example run
     print(sol.is_palindrome('A man, a plan, a canal: Panama'))
+    print(sol.is_palindrome('amanaplanacanalpanama'))
+
+    print(sol.is_palindrome_clean('A man, a plan, a canal: Panama'))
+    print(sol.is_palindrome_clean('amanaplanacanalpanama'))
