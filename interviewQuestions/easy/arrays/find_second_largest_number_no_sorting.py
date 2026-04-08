@@ -15,24 +15,35 @@ Difficulty: Easy
 
 
 class Solution:
-    def second_largest(self, data, *args):
-        """
-        Approach:
-        - Identify the primary data structure and iterate efficiently.
-        - Handle edge cases first (empty input, single item, invalid shape).
-        - Return output in the exact format expected by the interviewer.
+    def second_largest(self, data: list[int]) -> int:
+        second_max = float("-inf")
+        largest = float("-inf")
+        n = len(data)
+        for i in range(n):
+            largest = max(largest, data[i])
 
-        Time Complexity:
-        - O(n) to O(n log n), depending on the chosen implementation.
+        for i in range(0, n):
+            if largest > data[i] > second_max:
+                second_max = data[i]
+        return second_max
 
-        Space Complexity:
-        - O(n) auxiliary space in the general case.
-        """
+    @staticmethod
+    def find_second_largest_number(data: list[int]) -> int:
+        n = len(data)
+        first_max = float("-inf")
+        second_max = float("-inf")
+        for i in range(n):
+            if data[i]> first_max:
+                second_max = first_max
+                first_max = data[i]
+            elif data[i]>second_max and data[i]!=first_max:
+                second_max = data[i]
 
-
+        return second_max
 
 
 if __name__ == "__main__":
     sol = Solution()
     # Example run
-    print(sol.second_largest([10, 5, 20, 8]))
+    print(sol.second_largest([11, 51, 20, 8]))
+    print(Solution.find_second_largest_number([34, 51,51, 576]))
