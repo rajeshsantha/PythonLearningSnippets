@@ -13,9 +13,8 @@ Pattern: Strings
 Difficulty: Easy
 """
 
-
 class Solution:
-    def reverse_words(self, data, *args):
+    def reverse_words(self, data: str) -> str:
         """
         Approach:
         - Identify the primary data structure and iterate efficiently.
@@ -28,10 +27,22 @@ class Solution:
         Space Complexity:
         - O(n) auxiliary space in the general case.
         """
-        pass
+        reversed_words = []
+
+        if data:
+            words = data.split()
+            for word in reversed(words):
+                reversed_words.append(word)
+            return ' '.join(reversed_words)
+        return None
+
+    @staticmethod
+    def reverseWords(data:str)-> str:
+        return ' '.join(data.split()[::-1])
 
 
 if __name__ == "__main__":
     sol = Solution()
     # Example run
     print(sol.reverse_words('I love Python'))
+    print(sol.reverseWords('I love Python and Scala'))
