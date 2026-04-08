@@ -16,22 +16,31 @@ Difficulty: Easy
 
 class Solution:
     def remove_duplicates_ordered(self, data, *args):
-        """
-        Approach:
-        - Identify the primary data structure and iterate efficiently.
-        - Handle edge cases first (empty input, single item, invalid shape).
-        - Return output in the exact format expected by the interviewer.
+        deduplicated_list = []
+        for i in data:
+            if i not in deduplicated_list:
+                deduplicated_list.append(i)
 
-        Time Complexity:
-        - O(n) to O(n log n), depending on the chosen implementation.
+        return deduplicated_list
 
-        Space Complexity:
-        - O(n) auxiliary space in the general case.
-        """
-        pass
+    @staticmethod
+    def remove_duplicates_ordered_optimal(data:list[int])-> list[int]:
+        return list(dict.fromkeys(data))
 
+    @staticmethod
+    def remove_duplicates_interview(data: list[int])-> list[int]:
+        uniquelist= set()
+        result = []
+        for item in data:
+            if item not in uniquelist:
+                uniquelist.add(item)
+                result.append(item)
+
+        return result
 
 if __name__ == "__main__":
     sol = Solution()
     # Example run
     print(sol.remove_duplicates_ordered([1, 2, 2, 3, 1]))
+    print(Solution.remove_duplicates_ordered_optimal([1, 2, 2, 3, 1]))
+    print(Solution.remove_duplicates_interview([1, 2, 2, 3, 1]))
