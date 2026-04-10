@@ -15,7 +15,7 @@ Difficulty: Easy
 
 
 class Solution:
-    def char_frequency(self, data, *args):
+    def char_frequency(self, data:str)-> dict[str, int]:
         """
         Approach:
         - Identify the primary data structure and iterate efficiently.
@@ -28,7 +28,17 @@ class Solution:
         Space Complexity:
         - O(n) auxiliary space in the general case.
         """
-        pass
+        frequency_counter = {}
+        for character in data:
+            if character in frequency_counter:
+                print(f"{character} exists in freq")
+                frequency_counter[character] = frequency_counter.get(character)+1
+            else:
+                print(f"{character} doesnt exist so add")
+                frequency_counter[character] = 1
+        
+        return frequency_counter
+        
 
 
 if __name__ == "__main__":
