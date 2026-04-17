@@ -15,7 +15,7 @@ Difficulty: Easy
 
 
 class Solution:
-    def unique_ordered(self, data, *args):
+    def unique_ordered(self, data:list[int])-> list[int]:
         """
         Approach:
         - Identify the primary data structure and iterate efficiently.
@@ -28,10 +28,11 @@ class Solution:
         Space Complexity:
         - O(n) auxiliary space in the general case.
         """
-        pass
+        
 
 
 if __name__ == "__main__":
     sol = Solution()
     # Example run
     print(sol.unique_ordered([4, 5, 4, 6, 5]))
+    
