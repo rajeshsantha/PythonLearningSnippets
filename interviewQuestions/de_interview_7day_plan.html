@@ -1,0 +1,1683 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>7-Day Data Engineering Interview Prep — Rajesh Santha</title>
+<style>
+  :root {
+    --bg: #0d1117;
+    --bg2: #161b22;
+    --bg3: #1c2128;
+    --border: #30363d;
+    --text: #e6edf3;
+    --muted: #8b949e;
+    --accent: #f78166;
+    --accent2: #79c0ff;
+    --accent3: #56d364;
+    --accent4: #d2a8ff;
+    --accent5: #ffa657;
+    --accent6: #39d353;
+    --warn: #f0883e;
+    --danger: #ff7b72;
+    --tag-bg: #21262d;
+  }
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  body {
+    background: var(--bg);
+    color: var(--text);
+    font-family: 'Segoe UI', system-ui, -apple-system, sans-serif;
+    font-size: 14px;
+    line-height: 1.6;
+  }
+  .hero {
+    background: linear-gradient(135deg, #0d1117 0%, #161b22 50%, #1a1f2e 100%);
+    border-bottom: 1px solid var(--border);
+    padding: 48px 32px 36px;
+    text-align: center;
+    position: relative;
+    overflow: hidden;
+  }
+  .hero::before {
+    content: '';
+    position: absolute;
+    top: -80px; left: 50%; transform: translateX(-50%);
+    width: 600px; height: 200px;
+    background: radial-gradient(ellipse, rgba(121,192,255,0.08) 0%, transparent 70%);
+    pointer-events: none;
+  }
+  .hero h1 { font-size: 28px; font-weight: 700; letter-spacing: -0.5px; margin-bottom: 8px; }
+  .hero h1 span { color: var(--accent2); }
+  .hero p { color: var(--muted); font-size: 13px; margin-top: 6px; }
+  .badges { display: flex; gap: 8px; justify-content: center; flex-wrap: wrap; margin-top: 16px; }
+  .badge { background: var(--tag-bg); border: 1px solid var(--border); border-radius: 20px; padding: 4px 12px; font-size: 11px; color: var(--muted); }
+  .badge.hot { border-color: #f78166; color: var(--accent); }
+
+  .nav-bar {
+    display: flex; gap: 4px; padding: 12px 24px;
+    border-bottom: 1px solid var(--border);
+    background: var(--bg2);
+    overflow-x: auto; position: sticky; top: 0; z-index: 100;
+  }
+  .nav-btn {
+    background: none; border: 1px solid transparent; border-radius: 6px;
+    color: var(--muted); cursor: pointer; padding: 6px 14px; font-size: 12px;
+    white-space: nowrap; transition: all 0.15s;
+  }
+  .nav-btn:hover { background: var(--bg3); color: var(--text); }
+  .nav-btn.active { background: var(--bg3); border-color: var(--border); color: var(--accent2); font-weight: 600; }
+
+  .container { max-width: 960px; margin: 0 auto; padding: 24px 24px 80px; }
+  .day-panel { display: none; }
+  .day-panel.active { display: block; }
+
+  .day-header {
+    display: flex; align-items: center; gap: 16px;
+    padding: 20px 24px; border-radius: 10px;
+    border: 1px solid var(--border);
+    background: var(--bg2); margin-bottom: 20px;
+  }
+  .day-num {
+    width: 52px; height: 52px; border-radius: 10px;
+    display: flex; align-items: center; justify-content: center;
+    font-size: 20px; font-weight: 800; flex-shrink: 0;
+  }
+  .day-header h2 { font-size: 18px; font-weight: 700; }
+  .day-header p { color: var(--muted); font-size: 12px; margin-top: 3px; }
+  .intensity { display: flex; gap: 4px; margin-top: 6px; }
+  .intensity span { width: 8px; height: 8px; border-radius: 2px; background: var(--bg3); }
+  .intensity span.filled { background: var(--accent5); }
+
+  .section {
+    background: var(--bg2); border: 1px solid var(--border);
+    border-radius: 10px; margin-bottom: 16px; overflow: hidden;
+  }
+  .section-header {
+    display: flex; align-items: center; gap: 10px; padding: 14px 20px;
+    cursor: pointer; user-select: none; border-bottom: 1px solid transparent;
+    transition: background 0.1s;
+  }
+  .section-header:hover { background: var(--bg3); }
+  .section-header.open { border-bottom-color: var(--border); }
+  .section-icon { font-size: 16px; }
+  .section-title { font-size: 13px; font-weight: 700; text-transform: uppercase; letter-spacing: 0.5px; flex: 1; }
+  .section-arrow { color: var(--muted); font-size: 11px; transition: transform 0.2s; }
+  .section-header.open .section-arrow { transform: rotate(180deg); }
+  .section-body { padding: 0 20px 20px; display: none; }
+  .section-body.open { display: block; }
+
+  h3 { font-size: 13px; font-weight: 700; color: var(--accent2); margin: 16px 0 8px; text-transform: uppercase; letter-spacing: 0.4px; }
+  p, li { font-size: 13px; line-height: 1.7; }
+  ul, ol { padding-left: 20px; }
+  li { margin-bottom: 5px; color: #c9d1d9; }
+  li strong { color: var(--text); }
+  li .q { color: var(--accent4); }
+  li .good { color: var(--accent3); }
+  li .bad { color: var(--danger); }
+
+  .code-block {
+    background: #010409; border: 1px solid var(--border);
+    border-radius: 8px; padding: 16px; margin: 12px 0;
+    overflow-x: auto; position: relative;
+  }
+  .code-block pre { font-family: 'Consolas', 'Monaco', monospace; font-size: 12px; line-height: 1.6; color: #c9d1d9; white-space: pre; }
+  .code-label {
+    font-size: 10px; text-transform: uppercase; letter-spacing: 1px;
+    color: var(--muted); margin-bottom: 8px; font-weight: 600;
+  }
+
+  .keyword { color: #ff7b72; }
+  .string { color: #a5d6ff; }
+  .comment { color: #8b949e; font-style: italic; }
+  .fn { color: #d2a8ff; }
+  .num { color: #79c0ff; }
+  .op { color: #f78166; }
+
+  .q-card {
+    border: 1px solid var(--border); border-radius: 8px;
+    padding: 12px 16px; margin: 8px 0; background: var(--bg3);
+  }
+  .q-card .qnum { font-size: 10px; color: var(--muted); font-weight: 600; text-transform: uppercase; margin-bottom: 4px; }
+  .q-card .qtext { font-size: 13px; color: var(--accent4); margin-bottom: 8px; font-weight: 600; }
+  .q-card .follow { font-size: 12px; color: var(--muted); margin-top: 6px; border-top: 1px solid var(--border); padding-top: 6px; }
+  .q-card .expected { font-size: 12px; margin-top: 8px; }
+  .q-card .expected .label { font-weight: 700; font-size: 11px; text-transform: uppercase; }
+
+  .scenario-box {
+    background: rgba(121,192,255,0.05); border: 1px solid rgba(121,192,255,0.2);
+    border-radius: 8px; padding: 14px 16px; margin: 10px 0;
+  }
+  .scenario-box .stitle { font-size: 12px; font-weight: 700; color: var(--accent2); text-transform: uppercase; margin-bottom: 6px; }
+  .scenario-box .schallenge { font-size: 12px; color: var(--warn); margin-top: 8px; }
+
+  .trick-box {
+    background: rgba(255,123,114,0.07); border: 1px solid rgba(255,123,114,0.25);
+    border-radius: 8px; padding: 14px 16px; margin: 10px 0;
+  }
+  .trick-box .ttitle { font-size: 12px; font-weight: 700; color: var(--danger); text-transform: uppercase; margin-bottom: 6px; }
+
+  .checklist li { list-style: none; padding-left: 4px; }
+  .checklist li::before { content: '☐ '; color: var(--accent3); font-size: 13px; }
+
+  .tip-box {
+    background: rgba(86,211,100,0.06); border: 1px solid rgba(86,211,100,0.2);
+    border-radius: 8px; padding: 12px 16px; margin: 10px 0;
+  }
+  .tip-box strong { color: var(--accent3); font-size: 11px; text-transform: uppercase; display: block; margin-bottom: 4px; }
+
+  .mini-project {
+    background: rgba(210,168,255,0.06); border: 1px solid rgba(210,168,255,0.25);
+    border-radius: 8px; padding: 14px 16px; margin: 10px 0;
+  }
+  .mini-project .mptitle { font-size: 12px; font-weight: 700; color: var(--accent4); text-transform: uppercase; margin-bottom: 6px; }
+
+  .diff-badge {
+    font-size: 10px; padding: 2px 8px; border-radius: 4px; font-weight: 600;
+    text-transform: uppercase; letter-spacing: 0.3px;
+  }
+  .diff-easy { background: rgba(86,211,100,0.15); color: var(--accent3); }
+  .diff-med { background: rgba(255,166,87,0.15); color: var(--accent5); }
+  .diff-hard { background: rgba(255,123,114,0.15); color: var(--danger); }
+
+  table { width: 100%; border-collapse: collapse; font-size: 12px; margin: 12px 0; }
+  th { background: var(--bg3); padding: 8px 12px; text-align: left; font-weight: 700; color: var(--muted); border: 1px solid var(--border); font-size: 11px; text-transform: uppercase; }
+  td { padding: 8px 12px; border: 1px solid var(--border); vertical-align: top; }
+
+  .footer { text-align: center; padding: 32px; color: var(--muted); font-size: 12px; border-top: 1px solid var(--border); margin-top: 40px; }
+</style>
+</head>
+<body>
+
+<div class="hero">
+  <h1>7-Day <span>Data Engineering</span> Interview Bootcamp</h1>
+  <p>Personalized for Rajesh Santha · 9+ Years DE · Spark / Scala / Azure Databricks / Delta Lake</p>
+  <div class="badges">
+    <span class="badge hot">6–8 hrs/day</span>
+    <span class="badge">Production-level code</span>
+    <span class="badge">10+ questions/day</span>
+    <span class="badge">System Design</span>
+    <span class="badge">Mock Interview Day 7</span>
+  </div>
+</div>
+
+<div class="nav-bar">
+  <button class="nav-btn active" onclick="showDay(0)">Day 1 · Spark</button>
+  <button class="nav-btn" onclick="showDay(1)">Day 2 · Delta Lake</button>
+  <button class="nav-btn" onclick="showDay(2)">Day 3 · PySpark + SQL</button>
+  <button class="nav-btn" onclick="showDay(3)">Day 4 · Streaming + Kafka</button>
+  <button class="nav-btn" onclick="showDay(4)">Day 5 · Modeling + Orchestration</button>
+  <button class="nav-btn" onclick="showDay(5)">Day 6 · System Design</button>
+  <button class="nav-btn" onclick="showDay(6)">Day 7 · Mock Interview</button>
+</div>
+
+<div class="container">
+
+<!-- =================== DAY 1 =================== -->
+<div class="day-panel active" id="day-0">
+  <div class="day-header">
+    <div class="day-num" style="background:rgba(121,192,255,0.12);color:#79c0ff;">D1</div>
+    <div>
+      <h2>Spark Internals & Performance Tuning</h2>
+      <p>Execution model · DAG · Shuffle · Memory · AQE · Skew · Partitioning</p>
+      <div class="intensity">
+        <span class="filled"></span><span class="filled"></span><span class="filled"></span>
+        <span class="filled"></span><span class="filled"></span><span></span><span></span><span></span>
+      </div>
+    </div>
+  </div>
+
+  <div class="section">
+    <div class="section-header open" onclick="toggleSection(this)">
+      <span class="section-icon">🧠</span>
+      <span class="section-title">Concepts to Learn (Deep)</span>
+      <span class="section-arrow">▼</span>
+    </div>
+    <div class="section-body open">
+      <h3>1. Execution Model</h3>
+      <ul>
+        <li><strong>Driver vs Executor:</strong> Driver orchestrates, builds DAG, schedules tasks. Executor runs tasks in JVM processes. Know memory layout of each.</li>
+        <li><strong>DAG → Stages → Tasks:</strong> Spark converts transformations into a DAG. Stages separated by shuffle boundaries. One task per partition per stage.</li>
+        <li><strong>Lazy Evaluation:</strong> Nothing executes until an action (.count(), .write(), .collect()). Understand how Catalyst optimizer rewrites the logical plan into physical plan.</li>
+        <li><strong>Narrow vs Wide Transformations:</strong> map/filter are narrow (no shuffle). groupBy/join/distinct are wide (trigger shuffle). Wide = new stage.</li>
+        <li><strong>Catalyst Optimizer:</strong> Logical Plan → Analyzed Logical Plan → Optimized Logical Plan → Physical Plans → Best Physical Plan (cost model). Know predicate pushdown, column pruning, constant folding.</li>
+        <li><strong>Tungsten Engine:</strong> Off-heap binary encoding. Whole-stage code generation (codegen). Avoids JVM object overhead. Know UnsafeRow format.</li>
+      </ul>
+      <h3>2. Memory Management</h3>
+      <ul>
+        <li><strong>Unified Memory Model:</strong> spark.executor.memory → Storage (cache) + Execution (shuffle, join) regions. Dynamic sharing (one borrows from other).</li>
+        <li><strong>OOM Causes:</strong> Large shuffles, too many cached RDDs, collect() on huge dataset, bad UDFs creating large objects.</li>
+        <li><strong>spark.memory.fraction (0.6) + spark.memory.storageFraction (0.5):</strong> Know what happens when storage memory is evicted under execution pressure.</li>
+        <li><strong>Off-heap memory:</strong> spark.memory.offHeap.enabled, useful for large caches bypassing GC.</li>
+      </ul>
+      <h3>3. Shuffle Deep Dive</h3>
+      <ul>
+        <li><strong>Sort-Merge Shuffle (default):</strong> Map side writes sorted files per reducer. Reduce side reads and merges. Disk spill behavior.</li>
+        <li><strong>spark.sql.shuffle.partitions (default 200):</strong> Critical to tune. Too few = OOM/skew, too many = task overhead. Rule of thumb: 2-3x cores, or target 128–512 MB per partition.</li>
+        <li><strong>Tungsten Sort Shuffle (bypass):</strong> For small datasets / narrow ops — no sort, direct write. Triggers when spark.shuffle.manager=tungsten-sort and partitions ≤ 200.</li>
+      </ul>
+      <h3>4. Adaptive Query Execution (AQE)</h3>
+      <ul>
+        <li><strong>What it solves:</strong> Re-optimizes query mid-flight using runtime statistics. Enabled by spark.sql.adaptive.enabled=true (default in Spark 3.2+).</li>
+        <li><strong>3 Features:</strong> (a) Dynamic coalescing of shuffle partitions. (b) Dynamic switching of join strategies (SortMerge → BroadcastHash). (c) Skew join optimization (splits skewed partitions).</li>
+        <li><strong>Limitations:</strong> Works only on Spark SQL queries (not RDD API). Overhead of collecting stats between stages.</li>
+      </ul>
+      <h3>5. Data Skew</h3>
+      <ul>
+        <li><strong>Salting technique:</strong> Add random salt (0-N) to skewed key, explode and join with replicated small table. Remove salt post-join.</li>
+        <li><strong>Broadcast Join:</strong> For tables &lt; spark.sql.autoBroadcastJoinThreshold (10MB default). spark.broadcast.blockSize tuning.</li>
+        <li><strong>AQE Skew Join:</strong> Automatically splits skewed partitions when spark.sql.adaptive.skewJoin.enabled=true. Know thresholds: skewedPartitionFactor and skewedPartitionThresholdInBytes.</li>
+      </ul>
+      <h3>6. Partitioning Strategies</h3>
+      <ul>
+        <li><strong>repartition() vs coalesce():</strong> repartition = full shuffle, can increase/decrease. coalesce = no shuffle, can only decrease (may create uneven partitions).</li>
+        <li><strong>partitionBy() on write:</strong> Hive-style partitioning on disk. Choose low-cardinality columns. Avoid high-cardinality = many small files.</li>
+        <li><strong>bucketBy():</strong> Pre-shuffles data at write time into fixed buckets. Eliminates shuffle on reads for same-bucketed joins. Requires persistent table (not path-based).</li>
+      </ul>
+    </div>
+  </div>
+
+  <div class="section">
+    <div class="section-header" onclick="toggleSection(this)">
+      <span class="section-icon">❓</span>
+      <span class="section-title">Interview Questions (10+ with Follow-ups)</span>
+      <span class="section-arrow">▼</span>
+    </div>
+    <div class="section-body">
+      <div class="q-card">
+        <div class="qnum">Q1 · <span class="diff-badge diff-easy">Easy</span></div>
+        <div class="qtext">What is the difference between a transformation and an action in Spark? Why does this matter?</div>
+        <div class="expected">
+          <span class="label good" style="color:var(--accent3)">✓ Good Answer: </span> Transformations are lazy — they build a DAG but don't execute. Actions trigger execution. This matters because Spark can optimize the entire plan before running, enabling predicate pushdown, projection pruning, and join reordering.
+        </div>
+        <div class="follow">↳ Follow-up: "If I call df.filter().map().filter() — how many times does Spark scan the data?"<br>↳ Follow-up: "What happens when you call df.cache() — is it an action or transformation?"</div>
+      </div>
+
+      <div class="q-card">
+        <div class="qnum">Q2 · <span class="diff-badge diff-med">Medium</span></div>
+        <div class="qtext">Walk me through exactly what happens when you run a groupBy().agg() on a 1TB dataset across 200 executors.</div>
+        <div class="follow">↳ Follow-up: "At which point does disk spill happen?"<br>↳ Follow-up: "How would the execution differ with AQE enabled?"<br>↳ Follow-up: "What would you check in Spark UI to diagnose this?"</div>
+      </div>
+
+      <div class="q-card">
+        <div class="qnum">Q3 · <span class="diff-badge diff-med">Medium</span></div>
+        <div class="qtext">You have a job that runs fine with 100M rows but OOMs at 1B rows. Walk me through your debugging process.</div>
+        <div class="expected">
+          <span class="label good" style="color:var(--accent3)">✓ Good: </span> Check Spark UI stages for GC time &gt;10%, executor memory graphs, shuffle read/write size, task duration distribution (skew), then reduce collect(), increase partitions, tune executor memory.
+        </div>
+        <div class="expected">
+          <span class="label bad" style="color:var(--danger)">✗ Bad: </span> "I would increase executor memory." — This alone shows you don't understand root cause analysis.
+        </div>
+      </div>
+
+      <div class="q-card">
+        <div class="qnum">Q4 · <span class="diff-badge diff-hard">Hard</span></div>
+        <div class="qtext">Explain the difference between repartition(100) and coalesce(100) when you currently have 500 partitions. Which is better and when?</div>
+        <div class="follow">↳ Follow-up: "What if you have 50 partitions and coalesce to 100?"<br>↳ Follow-up: "What does coalesce do to task locality?"</div>
+      </div>
+
+      <div class="q-card">
+        <div class="qnum">Q5 · <span class="diff-badge diff-hard">Hard</span></div>
+        <div class="qtext">You're joining a 500GB table with a 5GB lookup table. The join takes 45 minutes. Walk me through 5 optimization strategies.</div>
+        <div class="follow">↳ Follow-up: "If the 5GB table has one key that appears in 80% of rows, how does this change your approach?"<br>↳ Follow-up: "How does bucketBy help here and what are its limitations on Databricks?"</div>
+      </div>
+
+      <div class="q-card">
+        <div class="qnum">Q6 · <span class="diff-badge diff-hard">Hard</span></div>
+        <div class="qtext">Explain AQE's skew join handling. What are the spark.sql.adaptive.skewJoin thresholds and how would you tune them?</div>
+      </div>
+
+      <div class="q-card">
+        <div class="qnum">Q7 · <span class="diff-badge diff-hard">Hard</span></div>
+        <div class="qtext">What is the difference between sort-merge join and shuffle-hash join? When does Spark choose each?</div>
+        <div class="follow">↳ Follow-up: "Can you force a broadcast join on a 100MB table? What's the risk?"</div>
+      </div>
+
+      <div class="q-card">
+        <div class="qnum">Q8 · <span class="diff-badge diff-hard">Hard</span></div>
+        <div class="qtext">You have 10,000 small files (avg 1MB each). A Spark job reading them takes 30 minutes just for the scan. Explain the problem and 3 ways to fix it.</div>
+        <div class="expected">
+          <span class="label good" style="color:var(--accent3)">✓ Good: </span> Small file problem. Spark creates one task per file = 10K tasks with high scheduling overhead. Solutions: (1) Compact files before read using repartition+write, (2) Delta Lake OPTIMIZE (Z-order + bin packing), (3) Use spark.sql.files.maxPartitionBytes to merge small splits.
+        </div>
+      </div>
+
+      <div class="q-card">
+        <div class="qnum">Q9 · <span class="diff-badge diff-hard">Hard</span></div>
+        <div class="qtext">Explain Tungsten's binary encoding and code generation. How does it differ from the old RDD execution model performance-wise?</div>
+      </div>
+
+      <div class="q-card">
+        <div class="qnum">Q10 · <span class="diff-badge diff-hard">Hard</span></div>
+        <div class="qtext">Your Spark job has 95th percentile task time of 40 minutes but median is 2 minutes. What is happening and how do you fix it without rewriting the entire job?</div>
+        <div class="follow">↳ Follow-up: "Salting works for one key. What if 50 different keys are skewed?"<br>↳ Follow-up: "How does AQE detect and handle this automatically?"</div>
+      </div>
+    </div>
+  </div>
+
+  <div class="section">
+    <div class="section-header" onclick="toggleSection(this)">
+      <span class="section-icon">💻</span>
+      <span class="section-title">Coding Practice</span>
+      <span class="section-arrow">▼</span>
+    </div>
+    <div class="section-body">
+      <h3>PySpark — Salting to Fix Skew</h3>
+      <div class="code-block">
+        <div class="code-label">pyspark · production-level · skew join with salting</div>
+        <pre><span class="keyword">from</span> pyspark.sql <span class="keyword">import</span> SparkSession
+<span class="keyword">from</span> pyspark.sql <span class="keyword">import</span> functions <span class="keyword">as</span> F
+<span class="keyword">from</span> pyspark.sql.types <span class="keyword">import</span> IntegerType
+
+spark = SparkSession.builder \
+    .config(<span class="string">"spark.sql.adaptive.enabled"</span>, <span class="string">"true"</span>) \
+    .config(<span class="string">"spark.sql.adaptive.skewJoin.enabled"</span>, <span class="string">"true"</span>) \
+    .getOrCreate()
+
+<span class="comment"># Large fact table with skewed user_id (user_id=0 = 80% of rows)</span>
+fact_df = spark.table(<span class="string">"events.user_events"</span>)  <span class="comment"># 500GB</span>
+dim_df  = spark.table(<span class="string">"dim.users"</span>)             <span class="comment"># 5GB</span>
+
+SALT_FACTOR = <span class="num">50</span>  <span class="comment"># tune based on skew severity</span>
+
+<span class="comment"># Step 1: Salt the fact table</span>
+fact_salted = fact_df.withColumn(
+    <span class="string">"salt"</span>, (F.rand() * SALT_FACTOR).cast(IntegerType())
+).withColumn(
+    <span class="string">"salted_user_id"</span>, F.concat_ws(<span class="string">"_"</span>, F.col(<span class="string">"user_id"</span>), F.col(<span class="string">"salt"</span>))
+)
+
+<span class="comment"># Step 2: Explode the dimension table with all salt values</span>
+salt_range = spark.range(SALT_FACTOR).select(
+    F.col(<span class="string">"id"</span>).cast(IntegerType()).alias(<span class="string">"salt"</span>)
+)
+dim_exploded = dim_df.crossJoin(salt_range).withColumn(
+    <span class="string">"salted_user_id"</span>, F.concat_ws(<span class="string">"_"</span>, F.col(<span class="string">"user_id"</span>), F.col(<span class="string">"salt"</span>))
+).drop(<span class="string">"salt"</span>)
+
+<span class="comment"># Step 3: Join on salted key</span>
+result = fact_salted.join(
+    F.broadcast(dim_exploded) <span class="keyword">if</span> dim_df.count() * SALT_FACTOR < <span class="num">10_000_000</span> <span class="keyword">else</span> dim_exploded,
+    on=<span class="string">"salted_user_id"</span>,
+    how=<span class="string">"inner"</span>
+).drop(<span class="string">"salt"</span>, <span class="string">"salted_user_id"</span>)
+
+result.write.format(<span class="string">"delta"</span>) \
+    .mode(<span class="string">"overwrite"</span>) \
+    .option(<span class="string">"overwriteSchema"</span>, <span class="string">"true"</span>) \
+    .save(<span class="string">"/mnt/output/events_enriched"</span>)
+
+<span class="comment"># Expected: partition task time std deviation drops from 40min to ~2min</span></pre>
+      </div>
+
+      <h3>SQL — Window Function Challenge</h3>
+      <div class="code-block">
+        <div class="code-label">sql · advanced · rolling 7-day revenue per user segment</div>
+        <pre><span class="comment">-- Find users whose 7-day rolling spend increased >20% vs prior 7-day period
+-- and whose current week rank in their segment improved</span>
+<span class="keyword">WITH</span> daily_spend <span class="keyword">AS</span> (
+    <span class="keyword">SELECT</span>
+        user_id, segment,
+        event_date,
+        <span class="fn">SUM</span>(amount) <span class="keyword">AS</span> daily_total
+    <span class="keyword">FROM</span> transactions
+    <span class="keyword">WHERE</span> event_date >= <span class="fn">DATEADD</span>(day, -<span class="num">21</span>, <span class="fn">CURRENT_DATE</span>())
+    <span class="keyword">GROUP BY</span> user_id, segment, event_date
+),
+rolling_window <span class="keyword">AS</span> (
+    <span class="keyword">SELECT</span>
+        user_id, segment, event_date,
+        <span class="fn">SUM</span>(daily_total) <span class="keyword">OVER</span> (
+            <span class="keyword">PARTITION BY</span> user_id
+            <span class="keyword">ORDER BY</span> event_date
+            <span class="keyword">ROWS BETWEEN</span> <span class="num">6</span> <span class="keyword">PRECEDING AND CURRENT ROW</span>
+        ) <span class="keyword">AS</span> rolling_7d_curr,
+        <span class="fn">SUM</span>(daily_total) <span class="keyword">OVER</span> (
+            <span class="keyword">PARTITION BY</span> user_id
+            <span class="keyword">ORDER BY</span> event_date
+            <span class="keyword">ROWS BETWEEN</span> <span class="num">13</span> <span class="keyword">PRECEDING AND</span> <span class="num">7</span> <span class="keyword">PRECEDING</span>
+        ) <span class="keyword">AS</span> rolling_7d_prev
+    <span class="keyword">FROM</span> daily_spend
+),
+ranked <span class="keyword">AS</span> (
+    <span class="keyword">SELECT</span>
+        user_id, segment, event_date,
+        rolling_7d_curr, rolling_7d_prev,
+        <span class="fn">DENSE_RANK</span>() <span class="keyword">OVER</span> (
+            <span class="keyword">PARTITION BY</span> segment, event_date
+            <span class="keyword">ORDER BY</span> rolling_7d_curr <span class="keyword">DESC</span>
+        ) <span class="keyword">AS</span> curr_rank,
+        <span class="fn">LAG</span>(<span class="fn">DENSE_RANK</span>() <span class="keyword">OVER</span> (
+            <span class="keyword">PARTITION BY</span> segment, event_date
+            <span class="keyword">ORDER BY</span> rolling_7d_curr <span class="keyword">DESC</span>
+        ), <span class="num">7</span>) <span class="keyword">OVER</span> (
+            <span class="keyword">PARTITION BY</span> user_id
+            <span class="keyword">ORDER BY</span> event_date
+        ) <span class="keyword">AS</span> prev_rank
+    <span class="keyword">FROM</span> rolling_window
+    <span class="keyword">WHERE</span> event_date = <span class="fn">CURRENT_DATE</span>() - <span class="num">1</span>
+)
+<span class="keyword">SELECT</span> *
+<span class="keyword">FROM</span> ranked
+<span class="keyword">WHERE</span>
+    rolling_7d_prev > <span class="num">0</span>
+    <span class="keyword">AND</span> rolling_7d_curr / rolling_7d_prev > <span class="num">1.20</span>
+    <span class="keyword">AND</span> curr_rank < prev_rank  <span class="comment">-- rank improved (lower = better)</span>
+<span class="keyword">ORDER BY</span> segment, curr_rank;</pre>
+      </div>
+    </div>
+  </div>
+
+  <div class="section">
+    <div class="section-header" onclick="toggleSection(this)">
+      <span class="section-icon">🏭</span>
+      <span class="section-title">Real-World Scenarios</span>
+      <span class="section-arrow">▼</span>
+    </div>
+    <div class="section-body">
+      <div class="scenario-box">
+        <div class="stitle">Scenario 1: Production Job Degradation</div>
+        <p>A nightly Spark job processing 2TB of clickstream data ran in 45 min for 6 months. Last Tuesday it started taking 4 hours with no code changes. The data volume is the same. Debug and fix it.</p>
+        <div class="schallenge">Interviewer challenges: "What metrics do you look at first?", "Your fix works today but fails next week — why?"</div>
+      </div>
+      <div class="scenario-box">
+        <div class="stitle">Scenario 2: Cross-Cluster Join Nightmare</div>
+        <p>You need to join two 500GB tables daily. No broadcast possible. AQE is on. The job uses 80% of cluster for 3 hours. Design a strategy to get it under 30 min.</p>
+        <div class="schallenge">Interviewer: "How does pre-bucketing help? What are the trade-offs of bucketBy in a lakehouse architecture?"</div>
+      </div>
+      <div class="scenario-box">
+        <div class="stitle">Scenario 3: Cost Explosion</div>
+        <p>Your Databricks cluster costs doubled this month. Spark UI shows 70% of executor time is GC pause. You're caching 5 DataFrames. What went wrong and how do you fix it?</p>
+      </div>
+    </div>
+  </div>
+
+  <div class="section">
+    <div class="section-header" onclick="toggleSection(this)">
+      <span class="section-icon">🔨</span>
+      <span class="section-title">Mini Project Task</span>
+      <span class="section-arrow">▼</span>
+    </div>
+    <div class="section-body">
+      <div class="mini-project">
+        <div class="mptitle">Build a Spark Performance Benchmarking Framework</div>
+        <p>Create a PySpark script that:</p>
+        <ul style="margin-top:8px;">
+          <li>Generates a synthetic skewed dataset (1 key = 70% of data, 2GB total)</li>
+          <li>Tests join performance: broadcast vs sort-merge vs salted</li>
+          <li>Logs metrics: duration, shuffle bytes, GC time from SparkContext</li>
+          <li>Outputs a comparison table with recommendation</li>
+          <li>Parameterized via CLI: --salt-factor, --broadcast-threshold</li>
+        </ul>
+        <p style="margin-top:8px;color:var(--muted);">This gives you a story to tell: "I built benchmarks to validate optimization decisions — not just gut feel."</p>
+      </div>
+    </div>
+  </div>
+
+  <div class="section">
+    <div class="section-header" onclick="toggleSection(this)">
+      <span class="section-icon">✅</span>
+      <span class="section-title">Revision Checklist</span>
+      <span class="section-arrow">▼</span>
+    </div>
+    <div class="section-body">
+      <ul class="checklist">
+        <li>Can explain DAG → Stages → Tasks without notes</li>
+        <li>Can name 5 Catalyst optimizer transformations</li>
+        <li>Can explain unified memory model with memory fractions</li>
+        <li>Can differentiate 3 shuffle implementations and when each is used</li>
+        <li>Can explain AQE's 3 features with real config params</li>
+        <li>Can implement salting manually and explain when AQE handles it automatically</li>
+        <li>Can diagnose skew from Spark UI (what metrics to look at)</li>
+        <li>Can explain repartition vs coalesce trade-offs with examples</li>
+        <li>Can write the 7-day rolling window SQL from scratch</li>
+        <li>Can explain bucketBy limitations on Databricks/Delta Lake</li>
+      </ul>
+    </div>
+  </div>
+
+  <div class="section">
+    <div class="section-header" onclick="toggleSection(this)">
+      <span class="section-icon">⚠️</span>
+      <span class="section-title">Trick Questions & Common Mistakes</span>
+      <span class="section-arrow">▼</span>
+    </div>
+    <div class="section-body">
+      <div class="trick-box">
+        <div class="ttitle">Trick 1: "Does cache() guarantee data stays in memory?"</div>
+        <p>No. If memory is needed for execution, storage region can be evicted (LRU). cache() is a hint, not a guarantee. persist(DISK_AND_MEMORY) spills to disk.</p>
+      </div>
+      <div class="trick-box">
+        <div class="ttitle">Trick 2: "You increase shuffle partitions to 2000. Job gets slower. Why?"</div>
+        <p>Too many partitions = task scheduling overhead > parallelism benefit. Each task has 5-10ms overhead. 2000 tasks × 10ms = 20 seconds just in scheduling per stage.</p>
+      </div>
+      <div class="trick-box">
+        <div class="ttitle">Trick 3: "Why does coalesce() produce uneven partitions?"</div>
+        <p>coalesce combines adjacent partitions (no shuffle). If original partitions have unequal data, merged partitions inherit that imbalance. repartition reshuffles evenly.</p>
+      </div>
+      <div class="trick-box">
+        <div class="ttitle">Common Mistake: Confusing partitionBy (write) with repartition (in-memory)</div>
+        <p>partitionBy on write creates Hive-style directory partitions. repartition creates in-memory task partitions. They serve completely different purposes. Mixing them up in interviews = red flag.</p>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- =================== DAY 2 =================== -->
+<div class="day-panel" id="day-1">
+  <div class="day-header">
+    <div class="day-num" style="background:rgba(86,211,100,0.12);color:#56d364;">D2</div>
+    <div>
+      <h2>Delta Lake — Deep Internals</h2>
+      <p>ACID · Transaction Log · MERGE · OPTIMIZE · ZORDER · Time Travel · Vacuum · CDC</p>
+    </div>
+  </div>
+
+  <div class="section">
+    <div class="section-header open" onclick="toggleSection(this)">
+      <span class="section-icon">🧠</span>
+      <span class="section-title">Concepts to Learn (Deep)</span>
+      <span class="section-arrow">▼</span>
+    </div>
+    <div class="section-body open">
+      <h3>1. Delta Transaction Log (_delta_log)</h3>
+      <ul>
+        <li><strong>JSON commit files:</strong> Every write/update/delete creates a new JSON file (00000000000000000001.json). Contains: add/remove file actions, commitInfo, metadata, protocol.</li>
+        <li><strong>Checkpoint files (.parquet):</strong> Created every 10 commits. Aggregates all JSON actions. Speeds up snapshot reconstruction (no need to replay all JSONs).</li>
+        <li><strong>Snapshot = last checkpoint + JSON commits since checkpoint.</strong> Delta reads these to determine current state of the table.</li>
+        <li><strong>Optimistic Concurrency Control:</strong> Writers read current version, make changes, then try to commit. If another writer committed in between, conflict resolution kicks in (can concurrent deletes on non-overlapping partitions succeed? Yes.)</li>
+      </ul>
+      <h3>2. MERGE (UPSERT) — The Most Interviewed Topic</h3>
+      <ul>
+        <li><strong>Performance internals:</strong> Delta MERGE does a join between source and target, then generates INSERT/UPDATE/DELETE actions. Rewrites entire affected files.</li>
+        <li><strong>Optimization:</strong> Use partition pruning in MERGE conditions. Low shuffle with partitioned target. Small file problem after many MERGEs → run OPTIMIZE.</li>
+        <li><strong>WHEN NOT MATCHED BY SOURCE:</strong> Deletes rows in target not present in source (Spark 3.4+/Delta 2.4+). Critical for CDC pipelines.</li>
+        <li><strong>Schema evolution in MERGE:</strong> .option("mergeSchema", "true") for new columns in source. NOT automatic by default.</li>
+      </ul>
+      <h3>3. OPTIMIZE + ZORDER</h3>
+      <ul>
+        <li><strong>OPTIMIZE:</strong> Compacts small files into larger ones (target: 1GB by default). Uses bin-packing algorithm. Does NOT sort data globally.</li>
+        <li><strong>ZORDER:</strong> Co-locates related data using Z-order space-filling curve. Multidimensional clustering. Best on 1-4 high-cardinality filter columns.</li>
+        <li><strong>ZORDER limitation:</strong> Rewrites all files. Expensive on large tables. Not incremental. Only benefits queries that filter on Z-ordered columns.</li>
+        <li><strong>Liquid Clustering (Delta 3.1+):</strong> Replaces ZORDER. Incremental, on-write clustering. Cluster keys defined at table level. You MUST know this for 2024/2025 interviews.</li>
+        <li><strong>Data Skipping:</strong> Delta stores min/max stats per column per file. ZORDER maximizes data skipping effectiveness.</li>
+      </ul>
+      <h3>4. Time Travel</h3>
+      <ul>
+        <li>VERSION AS OF / TIMESTAMP AS OF reads snapshot at that version.</li>
+        <li>Use case: Debugging, rollback, audit trail, reproducible ML features.</li>
+        <li>Limit: VACUUM removes old files (default 7 days retention). After vacuum, old versions inaccessible.</li>
+        <li>Rollback pattern: INSERT OVERWRITE from historical version — NOT a true rollback of transaction log.</li>
+      </ul>
+      <h3>5. Change Data Feed (CDF)</h3>
+      <ul>
+        <li>Enable: delta.enableChangeDataFeed = true on table.</li>
+        <li>Read changes: spark.readStream.option("readChangeData", true).table("my_table")</li>
+        <li>Columns added: _change_type (insert/update_preimage/update_postimage/delete), _commit_version, _commit_timestamp.</li>
+        <li>Use case: Streaming CDC pipelines, incremental aggregations, downstream event-driven systems.</li>
+      </ul>
+    </div>
+  </div>
+
+  <div class="section">
+    <div class="section-header" onclick="toggleSection(this)">
+      <span class="section-icon">❓</span>
+      <span class="section-title">Interview Questions</span>
+      <span class="section-arrow">▼</span>
+    </div>
+    <div class="section-body">
+      <div class="q-card">
+        <div class="qnum">Q1 · <span class="diff-badge diff-med">Medium</span></div>
+        <div class="qtext">How does Delta Lake achieve ACID transactions on top of a cloud object store that doesn't support atomic writes?</div>
+        <div class="expected"><span class="label good" style="color:var(--accent3)">✓ Good: </span> Delta uses the _delta_log directory as a WAL (Write-Ahead Log). Atomicity achieved by committing a new JSON file atomically (object stores guarantee put-if-absent). Isolation via optimistic concurrency control with conflict detection on commit.</div>
+      </div>
+      <div class="q-card">
+        <div class="qnum">Q2 · <span class="diff-badge diff-hard">Hard</span></div>
+        <div class="qtext">Two writers concurrently try to MERGE into the same Delta table. Writer A targets partition dt=2024-01-01, Writer B targets dt=2024-01-02. Will this conflict? Why?</div>
+        <div class="follow">↳ Follow-up: "What if both target the same partition?"<br>↳ Follow-up: "What isolation level does Delta use by default — Serializable or Snapshot?"</div>
+      </div>
+      <div class="q-card">
+        <div class="qnum">Q3 · <span class="diff-badge diff-hard">Hard</span></div>
+        <div class="qtext">You're running MERGE daily and your Delta table has accumulated 50,000 small files. OPTIMIZE is taking 2 hours. How do you fix this going forward?</div>
+        <div class="follow">↳ Follow-up: "What is Liquid Clustering and how does it solve the ZORDER/OPTIMIZE cycle problem?"</div>
+      </div>
+      <div class="q-card">
+        <div class="qnum">Q4 · <span class="diff-badge diff-hard">Hard</span></div>
+        <div class="qtext">Explain the difference between VACUUM and Time Travel. A user wants data from 10 days ago but gets an error. What happened and how do you prevent it?</div>
+      </div>
+      <div class="q-card">
+        <div class="qnum">Q5 · <span class="diff-badge diff-hard">Hard</span></div>
+        <div class="qtext">How would you design a CDC pipeline using Delta CDF that feeds into a downstream Gold layer aggregation table? Include error handling for late-arriving deletes.</div>
+      </div>
+      <div class="q-card">
+        <div class="qnum">Q6 · <span class="diff-badge diff-hard">Hard</span></div>
+        <div class="qtext">What columns should you ZORDER on for a table with schema: (user_id, event_type, country, event_date, amount)? Your queries always filter on event_date and country.</div>
+        <div class="follow">↳ Follow-up: "ZORDER on 5 columns — good or bad? Why does cardinality matter?"</div>
+      </div>
+      <div class="q-card">
+        <div class="qnum">Q7 · <span class="diff-badge diff-med">Medium</span></div>
+        <div class="qtext">What happens to data skipping when you run OPTIMIZE without ZORDER vs with ZORDER?</div>
+      </div>
+      <div class="q-card">
+        <div class="qnum">Q8 · <span class="diff-badge diff-hard">Hard</span></div>
+        <div class="qtext">Design a schema evolution strategy for a Delta table that receives data from 5 upstream sources, each potentially adding new columns at different times.</div>
+      </div>
+    </div>
+  </div>
+
+  <div class="section">
+    <div class="section-header" onclick="toggleSection(this)">
+      <span class="section-icon">💻</span>
+      <span class="section-title">Coding Practice</span>
+      <span class="section-arrow">▼</span>
+    </div>
+    <div class="section-body">
+      <h3>Production-Level MERGE with SCD Type 2</h3>
+      <div class="code-block">
+        <div class="code-label">pyspark · delta lake · SCD Type 2 MERGE pattern</div>
+        <pre><span class="keyword">from</span> delta.tables <span class="keyword">import</span> DeltaTable
+<span class="keyword">from</span> pyspark.sql <span class="keyword">import</span> functions <span class="keyword">as</span> F
+<span class="keyword">from</span> datetime <span class="keyword">import</span> datetime
+
+<span class="keyword">def</span> <span class="fn">upsert_scd2</span>(spark, source_df, target_table_path: str, key_cols: list, ts_col: str):
+    <span class="string">"""
+    SCD Type 2 MERGE: closes old record, inserts new record.
+    source_df: incoming changes with key + all attributes + ts_col
+    """</span>
+    delta_tbl = DeltaTable.forPath(spark, target_table_path)
+    
+    <span class="comment"># Tag source rows</span>
+    source_tagged = source_df.withColumn(<span class="string">"_merge_key"</span>, 
+        F.concat_ws(<span class="string">"||"</span>, *[F.col(c) <span class="keyword">for</span> c <span class="keyword">in</span> key_cols])
+    )
+    
+    <span class="comment"># Stage 1: MERGE to close old records (UPDATE end_date)</span>
+    delta_tbl.alias(<span class="string">"tgt"</span>).merge(
+        source_tagged.alias(<span class="string">"src"</span>),
+        <span class="string">" AND "</span>.join([<span class="string">f"tgt.{c} = src.{c}"</span> <span class="keyword">for</span> c <span class="keyword">in</span> key_cols]) +
+        <span class="string">" AND tgt.is_current = true"</span>
+    ).whenMatchedUpdate(
+        condition=<span class="string">"src."</span> + ts_col + <span class="string">" > tgt."</span> + ts_col,
+        set={
+            <span class="string">"is_current"</span>: F.lit(<span class="keyword">False</span>),
+            <span class="string">"end_date"</span>: F.col(<span class="string">"src."</span> + ts_col),
+            <span class="string">"_updated_at"</span>: F.current_timestamp()
+        }
+    ).execute()
+    
+    <span class="comment"># Stage 2: INSERT new records for changed rows + brand new rows</span>
+    new_rows = source_tagged.join(
+        delta_tbl.toDF().filter(<span class="string">"is_current = true"</span>),
+        on=key_cols, how=<span class="string">"left_anti"</span>
+    ).union(
+        source_tagged.join(
+            delta_tbl.toDF().filter(<span class="string">"is_current = false"</span>),
+            on=key_cols, how=<span class="string">"inner"</span>
+        ).select(source_tagged.columns)
+    ).withColumn(<span class="string">"is_current"</span>, F.lit(<span class="keyword">True</span>)) \
+     .withColumn(<span class="string">"start_date"</span>, F.col(ts_col)) \
+     .withColumn(<span class="string">"end_date"</span>, F.lit(<span class="keyword">None</span>).cast(<span class="string">"timestamp"</span>))
+    
+    new_rows.write.format(<span class="string">"delta"</span>) \
+        .mode(<span class="string">"append"</span>) \
+        .option(<span class="string">"mergeSchema"</span>, <span class="string">"true"</span>) \
+        .save(target_table_path)
+
+<span class="comment"># OPTIMIZE + ZORDER after heavy MERGE batch</span>
+<span class="keyword">def</span> <span class="fn">post_merge_maintenance</span>(spark, table_path: str, zorder_cols: list):
+    spark.sql(<span class="string">f"""
+        OPTIMIZE delta.`{table_path}`
+        ZORDER BY ({', '.join(zorder_cols)})
+    """</span>)
+    spark.sql(<span class="string">f"VACUUM delta.`{table_path}` RETAIN 168 HOURS"</span>)  <span class="comment"># 7 days</span></pre>
+      </div>
+    </div>
+  </div>
+
+  <div class="section">
+    <div class="section-header" onclick="toggleSection(this)">
+      <span class="section-icon">⚠️</span>
+      <span class="section-title">Trick Questions & Common Mistakes</span>
+      <span class="section-arrow">▼</span>
+    </div>
+    <div class="section-body">
+      <div class="trick-box">
+        <div class="ttitle">Trick: "Can you VACUUM a table and still do Time Travel to yesterday?"</div>
+        <p>Only if VACUUM retains &gt; 24 hours AND no VACUUM has run with shorter retention. The default is 7 days (168 hours). NEVER run VACUUM with RETAIN 0 HOURS in production — you'll lose all history.</p>
+      </div>
+      <div class="trick-box">
+        <div class="ttitle">Trick: "Is OPTIMIZE idempotent?"</div>
+        <p>Yes, but it creates new commit versions each time it runs (even if nothing to compact). This bloats the transaction log. Run OPTIMIZE on a schedule, not after every write.</p>
+      </div>
+      <div class="trick-box">
+        <div class="ttitle">Common Mistake: Using ZORDER on partition columns</div>
+        <p>ZORDER on a partitioned column (e.g., date if table is partitioned by date) has zero effect — data is already split by partition. ZORDER within a partition. Classic interview trap.</p>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- =================== DAY 3 =================== -->
+<div class="day-panel" id="day-2">
+  <div class="day-header">
+    <div class="day-num" style="background:rgba(247,129,102,0.12);color:#f78166;">D3</div>
+    <div>
+      <h2>PySpark Coding + Advanced SQL</h2>
+      <p>UDFs · Window Functions · SCD · CDC · Joins · Subqueries · Performance Anti-Patterns</p>
+    </div>
+  </div>
+
+  <div class="section">
+    <div class="section-header open" onclick="toggleSection(this)">
+      <span class="section-icon">🧠</span>
+      <span class="section-title">Concepts to Learn (Deep)</span>
+      <span class="section-arrow">▼</span>
+    </div>
+    <div class="section-body open">
+      <h3>1. UDF Performance Deep Dive</h3>
+      <ul>
+        <li><strong>Python UDF cost:</strong> Each row serialized from JVM → Python process (Py4J), executed in Python, deserialized back. Can be 100x slower than native Spark operations.</li>
+        <li><strong>Pandas UDF (Vectorized):</strong> Data sent as Arrow batches. 10-100x faster than row-wise Python UDFs. Use @pandas_udf decorator. Iterator pattern for large state.</li>
+        <li><strong>Scala UDF:</strong> Runs in JVM — same performance as built-in functions. Best choice for complex logic in performance-critical paths.</li>
+        <li><strong>When to use which:</strong> Built-in → Pandas UDF → Scala UDF → Python UDF (last resort).</li>
+      </ul>
+      <h3>2. Window Function Mastery</h3>
+      <ul>
+        <li><strong>Frame types:</strong> ROWS BETWEEN (physical offset) vs RANGE BETWEEN (value-based offset). Know the difference — RANGE can include duplicates.</li>
+        <li><strong>LAG/LEAD:</strong> Offset with optional default. Use for gap analysis, session detection, change detection.</li>
+        <li><strong>FIRST_VALUE / LAST_VALUE:</strong> Frame defaults are different! LAST_VALUE needs explicit ROWS BETWEEN UNBOUNDED PRECEDING AND CURRENT ROW or you'll get wrong results.</li>
+        <li><strong>Session windows:</strong> Detect sessions using LAG + CASE to flag session breaks, then cumulative SUM to assign session IDs.</li>
+      </ul>
+      <h3>3. SCD Implementations in SQL</h3>
+      <ul>
+        <li><strong>SCD Type 1:</strong> Overwrite. Simple UPDATE. Loses history. Use for non-critical attributes.</li>
+        <li><strong>SCD Type 2:</strong> Insert new row, close old with end_date + is_current flag. Maintains full history. Use for audit, point-in-time reporting.</li>
+        <li><strong>SCD Type 3:</strong> Add prev_value column. Limited history (only one prior value). Rare in practice.</li>
+        <li><strong>SCD Type 6 (hybrid 1+2+3):</strong> SCD2 + current_value denormalized on all rows. Eliminates self-join for current value lookup.</li>
+      </ul>
+      <h3>4. CDC Patterns</h3>
+      <ul>
+        <li><strong>Log-based CDC (Debezium):</strong> Reads DB transaction log. Captures inserts/updates/deletes with before/after images. Near-zero impact on source.</li>
+        <li><strong>Query-based CDC:</strong> Uses updated_at watermark. Misses hard deletes (use soft-delete + is_deleted flag). Simple but limited.</li>
+        <li><strong>Processing CDC events:</strong> Apply in order (sort by LSN or timestamp). Handle out-of-order events. Dedup by primary key + latest timestamp.</li>
+      </ul>
+    </div>
+  </div>
+
+  <div class="section">
+    <div class="section-header" onclick="toggleSection(this)">
+      <span class="section-icon">💻</span>
+      <span class="section-title">Coding Practice — PySpark & SQL</span>
+      <span class="section-arrow">▼</span>
+    </div>
+    <div class="section-body">
+      <h3>PySpark — Session Detection + Funnel Analysis</h3>
+      <div class="code-block">
+        <div class="code-label">pyspark · window functions · session detection</div>
+        <pre><span class="keyword">from</span> pyspark.sql <span class="keyword">import</span> functions <span class="keyword">as</span> F, Window
+
+<span class="comment"># Schema: user_id, event_type, event_ts (timestamp), page</span>
+events = spark.table(<span class="string">"clickstream.events"</span>)
+
+SESSION_GAP_SECONDS = <span class="num">1800</span>  <span class="comment"># 30 min inactivity = new session</span>
+
+user_window = Window.partitionBy(<span class="string">"user_id"</span>).orderBy(<span class="string">"event_ts"</span>)
+
+sessions = events \
+    .withColumn(<span class="string">"prev_ts"</span>, F.lag(<span class="string">"event_ts"</span>).over(user_window)) \
+    .withColumn(<span class="string">"gap_seconds"</span>, 
+        F.unix_timestamp(<span class="string">"event_ts"</span>) - F.unix_timestamp(<span class="string">"prev_ts"</span>)
+    ) \
+    .withColumn(<span class="string">"is_new_session"</span>,
+        (F.col(<span class="string">"prev_ts"</span>).isNull() | (F.col(<span class="string">"gap_seconds"</span>) > SESSION_GAP_SECONDS)).cast(<span class="string">"int"</span>)
+    ) \
+    .withColumn(<span class="string">"session_id"</span>,
+        F.concat(
+            F.col(<span class="string">"user_id"</span>),
+            F.lit(<span class="string">"_"</span>),
+            F.sum(<span class="string">"is_new_session"</span>).over(user_window)
+        )
+    )
+
+<span class="comment"># Compute session-level aggregates</span>
+session_summary = sessions.groupBy(<span class="string">"user_id"</span>, <span class="string">"session_id"</span>).agg(
+    F.min(<span class="string">"event_ts"</span>).alias(<span class="string">"session_start"</span>),
+    F.max(<span class="string">"event_ts"</span>).alias(<span class="string">"session_end"</span>),
+    F.count(<span class="string">"*"</span>).alias(<span class="string">"event_count"</span>),
+    F.collect_list(<span class="string">"page"</span>).alias(<span class="string">"page_sequence"</span>),
+    (F.unix_timestamp(F.max(<span class="string">"event_ts"</span>)) - 
+     F.unix_timestamp(F.min(<span class="string">"event_ts"</span>))).alias(<span class="string">"duration_seconds"</span>)
+).withColumn(
+    <span class="string">"converted"</span>, F.array_contains(F.col(<span class="string">"page_sequence"</span>), <span class="string">"checkout_complete"</span>)
+)
+
+<span class="comment"># Edge case: sessions with single event have duration=0 (not null)</span>
+<span class="comment"># Edge case: user_id=null events (anonymous) — keep but session_id will be "null_1"</span></pre>
+      </div>
+
+      <h3>SQL — Consecutive Date Gap Analysis (Hard)</h3>
+      <div class="code-block">
+        <div class="code-label">sql · advanced · consecutive active days + longest streak</div>
+        <pre><span class="comment">-- Find longest streak of consecutive active days per user
+-- Handle: same user multiple events per day (dedup first)
+-- Handle: gaps in dates (not just row differences)</span>
+<span class="keyword">WITH</span> daily_activity <span class="keyword">AS</span> (
+    <span class="keyword">SELECT DISTINCT</span> user_id, <span class="fn">DATE</span>(event_ts) <span class="keyword">AS</span> activity_date
+    <span class="keyword">FROM</span> events
+),
+numbered <span class="keyword">AS</span> (
+    <span class="keyword">SELECT</span>
+        user_id, activity_date,
+        <span class="fn">ROW_NUMBER</span>() <span class="keyword">OVER</span> (<span class="keyword">PARTITION BY</span> user_id <span class="keyword">ORDER BY</span> activity_date) <span class="keyword">AS</span> rn
+    <span class="keyword">FROM</span> daily_activity
+),
+groups <span class="keyword">AS</span> (
+    <span class="keyword">SELECT</span>
+        user_id, activity_date,
+        <span class="comment">-- If consecutive, date - rn is constant → same group</span>
+        <span class="fn">DATE_SUB</span>(activity_date, rn) <span class="keyword">AS</span> grp
+    <span class="keyword">FROM</span> numbered
+),
+streak_lengths <span class="keyword">AS</span> (
+    <span class="keyword">SELECT</span>
+        user_id, grp,
+        <span class="fn">MIN</span>(activity_date) <span class="keyword">AS</span> streak_start,
+        <span class="fn">MAX</span>(activity_date) <span class="keyword">AS</span> streak_end,
+        <span class="fn">COUNT</span>(*) <span class="keyword">AS</span> streak_days
+    <span class="keyword">FROM</span> groups
+    <span class="keyword">GROUP BY</span> user_id, grp
+)
+<span class="keyword">SELECT</span>
+    user_id,
+    <span class="fn">MAX</span>(streak_days) <span class="keyword">AS</span> longest_streak,
+    <span class="fn">FIRST_VALUE</span>(streak_start) <span class="keyword">OVER</span> (
+        <span class="keyword">PARTITION BY</span> user_id
+        <span class="keyword">ORDER BY</span> streak_days <span class="keyword">DESC</span>
+        <span class="keyword">ROWS BETWEEN UNBOUNDED PRECEDING AND UNBOUNDED FOLLOWING</span>
+    ) <span class="keyword">AS</span> best_streak_start
+<span class="keyword">FROM</span> streak_lengths
+<span class="keyword">GROUP BY</span> user_id, streak_start  <span class="comment">-- suboptimal: rewrite with QUALIFY or subquery</span>
+<span class="keyword">ORDER BY</span> longest_streak <span class="keyword">DESC</span>;</pre>
+      </div>
+
+      <h3>PySpark — Vectorized Pandas UDF (Production Pattern)</h3>
+      <div class="code-block">
+        <div class="code-label">pyspark · pandas udf · feature engineering at scale</div>
+        <pre><span class="keyword">import</span> pandas <span class="keyword">as</span> pd
+<span class="keyword">from</span> pyspark.sql.functions <span class="keyword">import</span> pandas_udf
+<span class="keyword">from</span> pyspark.sql.types <span class="keyword">import</span> DoubleType
+
+<span class="comment"># Vectorized UDF: compute revenue percentile within segment
+# Much faster than row-wise Python UDF</span>
+
+@pandas_udf(DoubleType())
+<span class="keyword">def</span> <span class="fn">normalize_revenue</span>(revenue: pd.Series, segment_mean: pd.Series, segment_std: pd.Series) -> pd.Series:
+    <span class="string">"""Z-score normalization within segment"""</span>
+    <span class="comment"># Avoid division by zero for segments with constant revenue</span>
+    std_safe = segment_std.where(segment_std > <span class="num">0</span>, other=<span class="num">1.0</span>)
+    <span class="keyword">return</span> (revenue - segment_mean) / std_safe
+
+<span class="comment"># Compute segment stats first (cheap aggregation)</span>
+segment_stats = df.groupBy(<span class="string">"segment"</span>).agg(
+    F.mean(<span class="string">"revenue"</span>).alias(<span class="string">"seg_mean"</span>),
+    F.stddev(<span class="string">"revenue"</span>).alias(<span class="string">"seg_std"</span>)
+)
+
+result = df.join(segment_stats, on=<span class="string">"segment"</span>, how=<span class="string">"left"</span>) \
+    .withColumn(<span class="string">"revenue_zscore"</span>, 
+        normalize_revenue(F.col(<span class="string">"revenue"</span>), F.col(<span class="string">"seg_mean"</span>), F.col(<span class="string">"seg_std"</span>))
+    )
+
+<span class="comment"># Edge case: null revenue → zscore = null (handled by pandas naturally)
+# Edge case: single-member segment → std=0 → protected by std_safe above</span></pre>
+      </div>
+    </div>
+  </div>
+
+  <div class="section">
+    <div class="section-header" onclick="toggleSection(this)">
+      <span class="section-icon">❓</span>
+      <span class="section-title">Interview Questions</span>
+      <span class="section-arrow">▼</span>
+    </div>
+    <div class="section-body">
+      <div class="q-card">
+        <div class="qnum">Q1 · <span class="diff-badge diff-hard">Hard</span></div>
+        <div class="qtext">LAST_VALUE() window function gives unexpected results. What's the most common cause?</div>
+        <div class="expected"><span class="label good" style="color:var(--accent3)">✓ Good: </span> Default frame is RANGE BETWEEN UNBOUNDED PRECEDING AND CURRENT ROW — so LAST_VALUE returns the current row's value in ascending order. Fix: explicitly use ROWS BETWEEN UNBOUNDED PRECEDING AND UNBOUNDED FOLLOWING.</div>
+      </div>
+      <div class="q-card">
+        <div class="qnum">Q2 · <span class="diff-badge diff-hard">Hard</span></div>
+        <div class="qtext">Write a SQL query to find the top 3 products by revenue per category, but only categories with at least 10 distinct products, excluding products with returns > 20%.</div>
+        <div class="follow">↳ Follow-up: "How does the query change if 'top 3' means 'no more than 3 — ties go to all tied products'? Use RANK vs DENSE_RANK vs ROW_NUMBER."</div>
+      </div>
+      <div class="q-card">
+        <div class="qnum">Q3 · <span class="diff-badge diff-hard">Hard</span></div>
+        <div class="qtext">You have a PySpark job that uses a Python UDF running at 500 rows/second. You need 50,000 rows/second. What are your options in order of preference?</div>
+      </div>
+      <div class="q-card">
+        <div class="qnum">Q4 · <span class="diff-badge diff-hard">Hard</span></div>
+        <div class="qtext">Implement SCD Type 2 from scratch in PySpark without using Delta MERGE. How would you handle late-arriving records?</div>
+      </div>
+    </div>
+  </div>
+
+  <div class="section">
+    <div class="section-header" onclick="toggleSection(this)">
+      <span class="section-icon">⚠️</span>
+      <span class="section-title">Trick Questions & Common Mistakes</span>
+      <span class="section-arrow">▼</span>
+    </div>
+    <div class="section-body">
+      <div class="trick-box">
+        <div class="ttitle">Trick: "df.collect() inside a UDF — what happens?"</div>
+        <p>Catastrophic. collect() is an action that pulls all data to the driver from within an executor task. This causes a nested Spark context issue and usually hangs or OOMs. Never call Spark actions inside UDFs.</p>
+      </div>
+      <div class="trick-box">
+        <div class="ttitle">Trick: ROWS BETWEEN vs RANGE BETWEEN with duplicates</div>
+        <p>If 3 rows have the same ORDER BY value, RANGE treats them as one unit (all get included). ROWS counts them individually. SUM with RANGE on duplicate timestamps can give inflated results.</p>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- =================== DAY 4 =================== -->
+<div class="day-panel" id="day-3">
+  <div class="day-header">
+    <div class="day-num" style="background:rgba(210,168,255,0.12);color:#d2a8ff;">D4</div>
+    <div>
+      <h2>Data Streaming — Kafka + Spark Structured Streaming</h2>
+      <p>Watermarking · Late Data · Exactly-Once · State · Kafka Internals · Failures</p>
+    </div>
+  </div>
+
+  <div class="section">
+    <div class="section-header open" onclick="toggleSection(this)">
+      <span class="section-icon">🧠</span>
+      <span class="section-title">Concepts to Learn (Deep)</span>
+      <span class="section-arrow">▼</span>
+    </div>
+    <div class="section-body open">
+      <h3>1. Kafka Internals</h3>
+      <ul>
+        <li><strong>Topic → Partitions → Offsets:</strong> Messages in a partition are ordered and immutable. Offset is the position. Consumers track offset independently.</li>
+        <li><strong>Consumer Groups:</strong> Each partition assigned to exactly one consumer in a group. More consumers than partitions = idle consumers. Rebalancing triggered on join/leave/failure.</li>
+        <li><strong>Retention vs Compaction:</strong> Time-based retention (delete old) vs Log compaction (keep latest value per key). Compacted topics ideal for CDC/changelogs.</li>
+        <li><strong>Producer ACKs:</strong> acks=0 (fire-forget), acks=1 (leader ack), acks=all (all ISR ack). acks=all + min.insync.replicas=2 → strong durability guarantee.</li>
+        <li><strong>Exactly-once semantics (EOS) in Kafka:</strong> Idempotent producer (dedup retries) + transactional API (atomic write across partitions). enable.idempotence=true + transactional.id.</li>
+      </ul>
+      <h3>2. Spark Structured Streaming</h3>
+      <ul>
+        <li><strong>Micro-batch vs Continuous Processing:</strong> Micro-batch (default) processes data in intervals. Trigger.Once for scheduled batch-like runs. Trigger.Continuous for millisecond latency (experimental).</li>
+        <li><strong>Checkpointing:</strong> Stores offset + state + query metadata to HDFS/ADLS. Required for exactly-once. Location: .option("checkpointLocation", path). Must be unique per query.</li>
+        <li><strong>Output Modes:</strong> Append (new rows only), Complete (full result table), Update (changed rows). Aggregations require Complete or Update. Append + aggregation = only works with watermark.</li>
+      </ul>
+      <h3>3. Watermarking & Late Data</h3>
+      <ul>
+        <li><strong>Watermark definition:</strong> withWatermark("event_time", "10 minutes") tells Spark: discard any event with event_time &lt; max(event_time) - 10 min. This bounds state size.</li>
+        <li><strong>Late data handling:</strong> Events within watermark window → included in aggregation. Events beyond watermark → dropped (no way to include without unbounded state).</li>
+        <li><strong>Multiple watermarks (stream-stream join):</strong> Spark uses min watermark of both streams. One slow stream blocks state cleanup of the other.</li>
+        <li><strong>Global watermark vs per-partition:</strong> Spark tracks watermark globally across partitions. A single stalled partition delays the global watermark.</li>
+      </ul>
+      <h3>4. Exactly-Once End-to-End</h3>
+      <ul>
+        <li><strong>Source:</strong> Kafka with Spark offset tracking (committed only after successful write).</li>
+        <li><strong>Processing:</strong> Spark uses idempotent writes + transactional commits per micro-batch epoch.</li>
+        <li><strong>Sink:</strong> Delta Lake (transactional) or Kafka (transactional API). File sinks with foreachBatch + atomic moves.</li>
+        <li><strong>foreachBatch pattern:</strong> Most flexible — gives you a DataFrame per batch. Use for complex sinks. Must handle idempotency yourself (write to temp + atomic rename, or use Delta MERGE).</li>
+      </ul>
+      <h3>5. Stateful Operations</h3>
+      <ul>
+        <li><strong>mapGroupsWithState:</strong> Custom state management. Arbitrary state per key. You control state schema, update, and timeout.</li>
+        <li><strong>flatMapGroupsWithState:</strong> Like above but can emit 0 or more rows per state update.</li>
+        <li><strong>State store:</strong> In-memory + checkpointed to HDFS. RocksDB state store (Databricks) for large states — off-heap, spills to disk.</li>
+      </ul>
+    </div>
+  </div>
+
+  <div class="section">
+    <div class="section-header" onclick="toggleSection(this)">
+      <span class="section-icon">💻</span>
+      <span class="section-title">Coding Practice</span>
+      <span class="section-arrow">▼</span>
+    </div>
+    <div class="section-body">
+      <h3>Kafka → Delta Lake Exactly-Once Pipeline</h3>
+      <div class="code-block">
+        <div class="code-label">pyspark structured streaming · exactly-once · late data handling</div>
+        <pre><span class="keyword">from</span> pyspark.sql <span class="keyword">import</span> functions <span class="keyword">as</span> F
+<span class="keyword">from</span> pyspark.sql.types <span class="keyword">import</span> StructType, StructField, StringType, LongType, TimestampType
+
+EVENT_SCHEMA = StructType([
+    StructField(<span class="string">"event_id"</span>, StringType()),
+    StructField(<span class="string">"user_id"</span>, StringType()),
+    StructField(<span class="string">"event_type"</span>, StringType()),
+    StructField(<span class="string">"amount"</span>, LongType()),
+    StructField(<span class="string">"event_time"</span>, TimestampType()),
+])
+
+<span class="comment"># Read from Kafka with explicit offset management</span>
+raw_stream = spark.readStream \
+    .format(<span class="string">"kafka"</span>) \
+    .option(<span class="string">"kafka.bootstrap.servers"</span>, <span class="string">"broker1:9092,broker2:9092"</span>) \
+    .option(<span class="string">"subscribe"</span>, <span class="string">"user_events"</span>) \
+    .option(<span class="string">"startingOffsets"</span>, <span class="string">"latest"</span>) \
+    .option(<span class="string">"maxOffsetsPerTrigger"</span>, <span class="num">100_000</span>)  <span class="comment"># backpressure</span> \
+    .option(<span class="string">"failOnDataLoss"</span>, <span class="string">"false"</span>)  <span class="comment"># handle Kafka retention</span> \
+    .load()
+
+<span class="comment"># Parse JSON payload</span>
+parsed = raw_stream \
+    .select(
+        F.from_json(F.col(<span class="string">"value"</span>).cast(<span class="string">"string"</span>), EVENT_SCHEMA).alias(<span class="string">"data"</span>),
+        F.col(<span class="string">"offset"</span>), F.col(<span class="string">"partition"</span>), F.col(<span class="string">"timestamp"</span>).alias(<span class="string">"kafka_ts"</span>)
+    ) \
+    .select(<span class="string">"data.*"</span>, <span class="string">"offset"</span>, <span class="string">"partition"</span>, <span class="string">"kafka_ts"</span>) \
+    .filter(F.col(<span class="string">"event_id"</span>).isNotNull())  <span class="comment"># drop malformed</span>
+
+<span class="comment"># Watermark: allow up to 10 min late arrival</span>
+<span class="comment"># Events older than (max_event_time - 10min) are DROPPED</span>
+windowed = parsed \
+    .withWatermark(<span class="string">"event_time"</span>, <span class="string">"10 minutes"</span>) \
+    .groupBy(
+        F.window(<span class="string">"event_time"</span>, <span class="string">"5 minutes"</span>),  <span class="comment"># 5-min tumbling window</span>
+        <span class="string">"event_type"</span>
+    ).agg(
+        F.count(<span class="string">"*"</span>).alias(<span class="string">"event_count"</span>),
+        F.sum(<span class="string">"amount"</span>).alias(<span class="string">"total_amount"</span>),
+        F.countDistinct(<span class="string">"user_id"</span>).alias(<span class="string">"unique_users"</span>)
+    )
+
+<span class="comment"># Write with exactly-once via foreachBatch + Delta MERGE</span>
+<span class="keyword">def</span> <span class="fn">upsert_to_delta</span>(batch_df, batch_id):
+    <span class="keyword">from</span> delta.tables <span class="keyword">import</span> DeltaTable
+    
+    <span class="keyword">if</span> batch_df.isEmpty():
+        <span class="keyword">return</span>
+    
+    <span class="comment"># Deduplicate within batch (Kafka may deliver duplicates on retry)</span>
+    deduped = batch_df.dropDuplicates([<span class="string">"window"</span>, <span class="string">"event_type"</span>])
+    
+    target = DeltaTable.forPath(spark, <span class="string">"/mnt/gold/event_aggregates"</span>)
+    target.alias(<span class="string">"tgt"</span>).merge(
+        deduped.alias(<span class="string">"src"</span>),
+        <span class="string">"tgt.window = src.window AND tgt.event_type = src.event_type"</span>
+    ).whenMatchedUpdateAll() \
+     .whenNotMatchedInsertAll() \
+     .execute()
+
+query = windowed.writeStream \
+    .foreachBatch(upsert_to_delta) \
+    .option(<span class="string">"checkpointLocation"</span>, <span class="string">"/mnt/checkpoints/event_aggregates"</span>) \
+    .trigger(processingTime=<span class="string">"1 minute"</span>) \
+    .start()
+
+query.awaitTermination()</pre>
+      </div>
+    </div>
+  </div>
+
+  <div class="section">
+    <div class="section-header" onclick="toggleSection(this)">
+      <span class="section-icon">❓</span>
+      <span class="section-title">Interview Questions</span>
+      <span class="section-arrow">▼</span>
+    </div>
+    <div class="section-body">
+      <div class="q-card">
+        <div class="qnum">Q1 · <span class="diff-badge diff-hard">Hard</span></div>
+        <div class="qtext">Explain exactly-once semantics in Spark Structured Streaming end-to-end. Where can at-least-once creep in?</div>
+        <div class="expected"><span class="label good" style="color:var(--accent3)">✓ Good: </span> Source tracking via offsets in checkpoint. Processing idempotency (same batch_id produces same output). Sink transactionality (Delta commit or Kafka transactional write). At-least-once creeps in if: sink doesn't support transactions, foreachBatch writes to non-idempotent sink, or checkpoint is corrupted and job restarts from earlier offset.</div>
+      </div>
+      <div class="q-card">
+        <div class="qnum">Q2 · <span class="diff-badge diff-hard">Hard</span></div>
+        <div class="qtext">Your stream processes events with 10-minute watermark. A data center outage causes a 4-hour backlog. What happens when the stream recovers? Are any events lost?</div>
+        <div class="follow">↳ Follow-up: "How do you detect that late data was dropped silently?"<br>↳ Follow-up: "How would you design a dead-letter queue for dropped events?"</div>
+      </div>
+      <div class="q-card">
+        <div class="qnum">Q3 · <span class="diff-badge diff-hard">Hard</span></div>
+        <div class="qtext">You have a stream-stream join between orders and payments. Orders arrive within 1 hour of placement. Payments arrive within 30 min. Design the watermarks and state TTL.</div>
+      </div>
+      <div class="q-card">
+        <div class="qnum">Q4 · <span class="diff-badge diff-hard">Hard</span></div>
+        <div class="qtext">Your Kafka consumer lag keeps growing despite adequate cluster resources. Walk me through 7 possible causes and fixes.</div>
+        <div class="expected"><span class="label good" style="color:var(--accent3)">✓ Good answers include: </span> Too few partitions, slow deserialization, heavy processing per message, GC pressure, state store thrashing, insufficient maxOffsetsPerTrigger, skewed partitions (one partition has 10x more events).</div>
+      </div>
+      <div class="q-card">
+        <div class="qnum">Q5 · <span class="diff-badge diff-hard">Hard</span></div>
+        <div class="qtext">How does RocksDB state store differ from the default HDFS state store in Spark? When would you use it?</div>
+      </div>
+    </div>
+  </div>
+
+  <div class="section">
+    <div class="section-header" onclick="toggleSection(this)">
+      <span class="section-icon">⚠️</span>
+      <span class="section-title">Trick Questions & Edge Cases</span>
+      <span class="section-arrow">▼</span>
+    </div>
+    <div class="section-body">
+      <div class="trick-box">
+        <div class="ttitle">Trick: "Can you use aggregations with Append output mode?"</div>
+        <p>Only if a watermark is defined. Without watermark, Spark doesn't know when to finalize a window, so Append mode is rejected. With watermark, Spark emits window results only after the watermark passes the window end.</p>
+      </div>
+      <div class="trick-box">
+        <div class="ttitle">Edge Case: Checkpoint schema change</div>
+        <p>If you change the streaming query (add/remove columns, change aggregation), the checkpoint may be incompatible. You must delete the checkpoint and restart — losing offset position. Design: always make checkpoint path versioned (v1, v2...) for safe schema migrations.</p>
+      </div>
+      <div class="trick-box">
+        <div class="ttitle">Trick: failOnDataLoss=false — what does it mean?</div>
+        <p>If Kafka deletes messages (retention expired) before Spark reads them, with failOnDataLoss=true the query fails. With false it silently skips. You MUST have a DLQ or monitoring to detect this data loss.</p>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- =================== DAY 5 =================== -->
+<div class="day-panel" id="day-4">
+  <div class="day-header">
+    <div class="day-num" style="background:rgba(250,199,117,0.12);color:#fac775;">D5</div>
+    <div>
+      <h2>Data Modeling + Orchestration + CI/CD</h2>
+      <p>Star Schema · SCD · Medallion Architecture · Airflow · Testing · Observability</p>
+    </div>
+  </div>
+
+  <div class="section">
+    <div class="section-header open" onclick="toggleSection(this)">
+      <span class="section-icon">🧠</span>
+      <span class="section-title">Concepts to Learn (Deep)</span>
+      <span class="section-arrow">▼</span>
+    </div>
+    <div class="section-body open">
+      <h3>1. Data Modeling for the Lakehouse</h3>
+      <ul>
+        <li><strong>Star Schema:</strong> Fact table (measurements/events) surrounded by denormalized dimension tables. Fast reads, easy BI queries. No joins between dims.</li>
+        <li><strong>Snowflake Schema:</strong> Normalized dimensions (dims have their own dims). Less storage, more joins. Use only when dim cardinality is extreme.</li>
+        <li><strong>Medallion Architecture (Bronze/Silver/Gold):</strong> Bronze = raw ingestion (schema-on-read, no transformation). Silver = cleansed, validated, deduped. Gold = business-level aggregates, domain models. Know when to skip Silver for streaming paths.</li>
+        <li><strong>One Big Table (OBT):</strong> Pre-joined, denormalized, optimized for specific query pattern. Trade-off: write amplification, update complexity vs read performance.</li>
+        <li><strong>Data Vault:</strong> Hub (business keys), Link (relationships), Satellite (attributes). Highly scalable, audit-friendly, but complex for BI. Know when to recommend vs not.</li>
+      </ul>
+      <h3>2. Airflow Deep Dive</h3>
+      <ul>
+        <li><strong>Concepts:</strong> DAG, Task, Operator, XCom, Connections, Variables, Sensors, TaskGroups.</li>
+        <li><strong>Scheduler internals:</strong> DAG parsing loop, task queuing, executor model (LocalExecutor, CeleryExecutor, KubernetesExecutor). Know differences.</li>
+        <li><strong>Dynamic DAGs:</strong> Generate DAGs programmatically from config/DB. Use with caution — DAG parsing delay, serialization issues.</li>
+        <li><strong>Backfill strategy:</strong> airflow dags backfill --start-date --end-date. Idempotency requirement: each DAG run must be re-runnable without duplicates.</li>
+        <li><strong>Sensors vs Deferrable Operators:</strong> Sensors hold a worker slot while waiting (expensive). Deferrable operators release worker, use async triggerer. Use deferrable in production.</li>
+        <li><strong>XCom limits:</strong> XCom stored in metadata DB. Not for large data. Max ~48KB in Postgres. Use S3/ADLS paths instead.</li>
+      </ul>
+      <h3>3. CI/CD for Data Pipelines</h3>
+      <ul>
+        <li><strong>Testing pyramid:</strong> Unit tests (pure functions, transformations) → Integration tests (against test Delta tables) → Contract tests (schema validation) → E2E tests (full pipeline on sample data).</li>
+        <li><strong>dbt testing pattern:</strong> not_null, unique, accepted_values, relationship tests. Custom tests with SQL assertions.</li>
+        <li><strong>Great Expectations:</strong> Expectation Suites, Checkpoints, Data Docs. Integrate in pipeline as validation step before promotion to Gold.</li>
+        <li><strong>Schema registry:</strong> Avro/Protobuf with Confluent Schema Registry for Kafka. Prevents breaking schema changes from reaching consumers.</li>
+      </ul>
+      <h3>4. Observability</h3>
+      <ul>
+        <li><strong>Data quality metrics:</strong> completeness (null rate), uniqueness (dedup rate), freshness (max event_time lag), volumetric (row count vs expected), distribution drift.</li>
+        <li><strong>Pipeline SLAs:</strong> Alert if Gold table not refreshed by 6am. Alert if Silver row count drops &gt;20% vs 7-day average.</li>
+        <li><strong>Spark metrics:</strong> Prometheus + Grafana on Databricks. Track: job duration, shuffle bytes, GC time, failed tasks, executor OOM count.</li>
+      </ul>
+    </div>
+  </div>
+
+  <div class="section">
+    <div class="section-header" onclick="toggleSection(this)">
+      <span class="section-icon">❓</span>
+      <span class="section-title">Interview Questions</span>
+      <span class="section-arrow">▼</span>
+    </div>
+    <div class="section-body">
+      <div class="q-card">
+        <div class="qnum">Q1 · <span class="diff-badge diff-hard">Hard</span></div>
+        <div class="qtext">You have a 500M row fact table that is joined daily with 5 dimension tables in BI tools. Read latency is 10 seconds per query. Design a model to get sub-second response.</div>
+        <div class="follow">↳ Follow-up: "Your proposed denormalization increases write costs 5x. Is this acceptable? What's your trade-off framework?"</div>
+      </div>
+      <div class="q-card">
+        <div class="qnum">Q2 · <span class="diff-badge diff-hard">Hard</span></div>
+        <div class="qtext">Your Airflow DAG has 200 tasks and takes 4 hours to finish. The scheduler is slow to pick up tasks after completion. Root cause and fix.</div>
+        <div class="expected"><span class="label good" style="color:var(--accent3)">✓ Good: </span> 200 tasks parsed every heartbeat. Scheduler bottleneck. Solutions: reduce DAG complexity with TaskGroups, use CeleryExecutor with more workers, increase scheduler heartbeat rate, split monolithic DAG into child DAGs with TriggerDagRunOperator.</div>
+      </div>
+      <div class="q-card">
+        <div class="qnum">Q3 · <span class="diff-badge diff-hard">Hard</span></div>
+        <div class="qtext">How do you test a PySpark transformation that reads from a Delta table and writes to another? What frameworks and patterns would you use?</div>
+      </div>
+      <div class="q-card">
+        <div class="qnum">Q4 · <span class="diff-badge diff-hard">Hard</span></div>
+        <div class="qtext">A BI dashboard shows wrong revenue numbers. How do you trace the root cause across a 5-layer medallion pipeline?</div>
+      </div>
+      <div class="q-card">
+        <div class="qnum">Q5 · <span class="diff-badge diff-hard">Hard</span></div>
+        <div class="qtext">Design a data quality framework for a pipeline that processes financial transactions. What checks would you implement at each medallion layer?</div>
+      </div>
+    </div>
+  </div>
+
+  <div class="section">
+    <div class="section-header" onclick="toggleSection(this)">
+      <span class="section-icon">💻</span>
+      <span class="section-title">Coding Practice</span>
+      <span class="section-arrow">▼</span>
+    </div>
+    <div class="section-body">
+      <h3>Airflow DAG — Production Pattern with SLA + Alerting</h3>
+      <div class="code-block">
+        <div class="code-label">airflow · production dag · spark + delta + sla monitoring</div>
+        <pre><span class="keyword">from</span> datetime <span class="keyword">import</span> datetime, timedelta
+<span class="keyword">from</span> airflow <span class="keyword">import</span> DAG
+<span class="keyword">from</span> airflow.providers.databricks.operators.databricks <span class="keyword">import</span> DatabricksRunNowOperator
+<span class="keyword">from</span> airflow.providers.databricks.sensors.databricks <span class="keyword">import</span> DatabricksJobRunStatusSensor
+<span class="keyword">from</span> airflow.operators.python <span class="keyword">import</span> PythonOperator
+<span class="keyword">from</span> airflow.utils.trigger_rule <span class="keyword">import</span> TriggerRule
+
+<span class="keyword">def</span> <span class="fn">sla_miss_callback</span>(dag, task_list, blocking_task_list, slas, blocking_tis):
+    <span class="comment"># Send PagerDuty/Slack alert on SLA breach</span>
+    send_alert(<span class="string">f"SLA BREACH: {[sla.task_id for sla in slas]}"</span>)
+
+<span class="keyword">def</span> <span class="fn">on_failure_callback</span>(context):
+    task_id = context[<span class="string">'task_instance'</span>].task_id
+    error = context.get(<span class="string">'exception'</span>)
+    send_alert(<span class="string">f"TASK FAILED: {task_id}\n{error}"</span>)
+
+default_args = {
+    <span class="string">"owner"</span>: <span class="string">"data-engineering"</span>,
+    <span class="string">"retries"</span>: <span class="num">2</span>,
+    <span class="string">"retry_delay"</span>: timedelta(minutes=<span class="num">5</span>),
+    <span class="string">"on_failure_callback"</span>: on_failure_callback,
+    <span class="string">"email_on_failure"</span>: <span class="keyword">False</span>,  <span class="comment"># Use callback instead</span>
+}
+
+<span class="keyword">with</span> DAG(
+    dag_id=<span class="string">"gold_revenue_pipeline"</span>,
+    schedule_interval=<span class="string">"0 4 * * *"</span>,  <span class="comment"># 4am UTC daily</span>
+    start_date=datetime(<span class="num">2024</span>, <span class="num">1</span>, <span class="num">1</span>),
+    catchup=<span class="keyword">False</span>,
+    max_active_runs=<span class="num">1</span>,  <span class="comment"># prevent concurrent runs</span>
+    sla_miss_callback=sla_miss_callback,
+    tags=[<span class="string">"gold"</span>, <span class="string">"revenue"</span>, <span class="string">"finance"</span>],
+    default_args=default_args
+) <span class="keyword">as</span> dag:
+
+    ingest_bronze = DatabricksRunNowOperator(
+        task_id=<span class="string">"ingest_bronze"</span>,
+        databricks_conn_id=<span class="string">"databricks_prod"</span>,
+        job_id=<span class="string">"1001"</span>,
+        notebook_params={<span class="string">"execution_date"</span>: <span class="string">"{{ ds }}"</span>},
+        sla=timedelta(hours=<span class="num">1</span>)
+    )
+
+    transform_silver = DatabricksRunNowOperator(
+        task_id=<span class="string">"transform_silver"</span>,
+        databricks_conn_id=<span class="string">"databricks_prod"</span>,
+        job_id=<span class="string">"1002"</span>,
+        notebook_params={<span class="string">"execution_date"</span>: <span class="string">"{{ ds }}"</span>},
+        sla=timedelta(hours=<span class="num">2</span>)
+    )
+
+    validate_silver = PythonOperator(
+        task_id=<span class="string">"validate_silver"</span>,
+        python_callable=run_great_expectations,
+        op_kwargs={<span class="string">"suite"</span>: <span class="string">"silver_revenue_suite"</span>, <span class="string">"date"</span>: <span class="string">"{{ ds }}"</span>},
+        sla=timedelta(hours=<span class="num">2</span>, minutes=<span class="num">30</span>)
+    )
+
+    build_gold = DatabricksRunNowOperator(
+        task_id=<span class="string">"build_gold"</span>,
+        databricks_conn_id=<span class="string">"databricks_prod"</span>,
+        job_id=<span class="string">"1003"</span>,
+        sla=timedelta(hours=<span class="num">3</span>)
+    )
+
+    ingest_bronze >> transform_silver >> validate_silver >> build_gold</pre>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- =================== DAY 6 =================== -->
+<div class="day-panel" id="day-5">
+  <div class="day-header">
+    <div class="day-num" style="background:rgba(247,129,102,0.15);color:#f78166;">D6</div>
+    <div>
+      <h2>System Design for Data Pipelines</h2>
+      <p>Full pipeline design · Trade-offs · Failure handling · Azure Architecture</p>
+    </div>
+  </div>
+
+  <div class="section">
+    <div class="section-header open" onclick="toggleSection(this)">
+      <span class="section-icon">🏗️</span>
+      <span class="section-title">System Design Problem 1: Real-Time Financial Fraud Detection</span>
+      <span class="section-arrow">▼</span>
+    </div>
+    <div class="section-body open">
+      <div class="scenario-box">
+        <div class="stitle">Problem Statement</div>
+        <p>Design a data pipeline for a bank that processes 100,000 transactions/second. Requirements: detect potentially fraudulent transactions within 500ms, maintain 180 days of history for regulatory reporting, support ad-hoc analyst queries on historical data, feed a real-time ML scoring service.</p>
+      </div>
+
+      <h3>How to Structure Your Answer (STAR + Architecture Layers)</h3>
+      <ul>
+        <li><strong>1. Clarify Requirements (2 min):</strong> Read vs write ratio? Latency SLA (500ms E2E or just detection?)? Volume steady or bursty? Availability requirement (99.9%? 99.99%)? Data retention?</li>
+        <li><strong>2. High-Level Architecture:</strong> Source → Kafka → Stream Processing → Feature Store + ML Scoring → Alert Service. Parallel path: Kafka → Bronze Delta → Silver Delta → Gold Delta → BI.</li>
+        <li><strong>3. Component Selection with Justification:</strong> Kafka (high-throughput, replay, consumer group isolation). Spark Structured Streaming (stateful aggregations, watermarking). Delta Lake (ACID, Time Travel for audit). Azure Event Hubs (if staying Azure-native — Kafka-compatible).</li>
+        <li><strong>4. Deep Dive on One Component:</strong> Explain Kafka partition strategy: partition by account_id ensures all events for one account go to same partition → in-order processing → no need for distributed joins for per-account features.</li>
+        <li><strong>5. Handle Failures:</strong> Kafka consumer lag monitoring. Dead letter queue for malformed events. Circuit breaker before ML service. Checkpointing for stream recovery.</li>
+        <li><strong>6. Trade-offs:</strong> Lambda vs Kappa architecture. Exactly-once overhead vs performance. Denormalized Gold vs normalized Silver for query flexibility.</li>
+      </ul>
+
+      <h3>Interviewer Challenge Questions — Have Answers Ready</h3>
+      <div class="q-card">
+        <div class="qnum">Challenge 1</div>
+        <div class="qtext">"Your Kafka broker goes down for 20 minutes. How does your pipeline recover? Are any transactions lost?"</div>
+        <div class="follow">Answer: Kafka replication (RF=3). Producer retries with acks=all. Consumer resumes from last committed offset in Spark checkpoint. No loss if RF&gt;1 and checkpoint is intact. Lag accumulates = process backlog on recovery.</div>
+      </div>
+      <div class="q-card">
+        <div class="qnum">Challenge 2</div>
+        <div class="qnum">Challenge 2</div>
+        <div class="qtext">"Your ML scoring service starts returning errors. How does the streaming pipeline handle this?"</div>
+        <div class="follow">Answer: Implement circuit breaker pattern in foreachBatch. If ML service error rate &gt;10%, write to DLQ + continue processing. Async retry from DLQ. Alert on DLQ growth. Never block the streaming pipeline for a downstream service failure.</div>
+      </div>
+      <div class="q-card">
+        <div class="qnum">Challenge 3</div>
+        <div class="qtext">"Regulators want a complete audit trail of every decision made. How do you ensure reproducibility?"</div>
+        <div class="follow">Answer: Delta Lake Time Travel on the feature store snapshot. Log model version + feature values + decision with each transaction to an immutable audit Delta table. Use Delta CDF to replay decisions for any time range.</div>
+      </div>
+    </div>
+  </div>
+
+  <div class="section">
+    <div class="section-header" onclick="toggleSection(this)">
+      <span class="section-icon">🏗️</span>
+      <span class="section-title">System Design Problem 2: Multi-Region Data Lakehouse (Azure)</span>
+      <span class="section-arrow">▼</span>
+    </div>
+    <div class="section-body">
+      <div class="scenario-box">
+        <div class="stitle">Problem Statement</div>
+        <p>Design a global data lakehouse on Azure for an e-commerce company with users in US, EU, and APAC. Requirements: GDPR compliance (EU data stays in EU), 50TB/day ingestion, cross-region analytics for leadership, 99.95% SLA for Gold tables.</p>
+      </div>
+
+      <h3>Azure Architecture Components</h3>
+      <ul>
+        <li><strong>Ingestion:</strong> Azure Event Hubs (Kafka-compatible) per region → regional Azure Data Lake Storage Gen2.</li>
+        <li><strong>Processing:</strong> Azure Databricks workspace per region for Bronze/Silver. Regional isolation for GDPR.</li>
+        <li><strong>Cross-Region Analytics:</strong> Aggregated (non-PII) Gold data replicated to central US workspace via Azure Data Factory. Differential replication on Delta table commit versions.</li>
+        <li><strong>Compliance:</strong> Azure Purview for data catalog + lineage. Row-level security on EU PII data. EU workspace in West Europe / North Europe only.</li>
+        <li><strong>Networking:</strong> Private endpoints for ADLS. VNet integration for Databricks. No public internet access for data paths.</li>
+        <li><strong>Storage tiering:</strong> ADLS Gen2 with lifecycle management: Bronze → Cool after 30d → Archive after 180d. Gold = Hot (always).</li>
+        <li><strong>Disaster Recovery:</strong> ADLS geo-redundant storage (GRS). Databricks workspace in paired region (standby). RTO &lt; 2hrs, RPO &lt; 15min for Gold layer.</li>
+      </ul>
+
+      <h3>Trade-off Discussion Points</h3>
+      <table>
+        <tr><th>Decision</th><th>Option A</th><th>Option B</th><th>Recommendation</th></tr>
+        <tr><td>EU data movement</td><td>Replicate aggregates only</td><td>Full replication (violates GDPR)</td><td>Option A — aggregate then share</td></tr>
+        <tr><td>Streaming vs Batch</td><td>Kafka streaming everywhere</td><td>Batch for cross-region (ADF)</td><td>Hybrid — stream regionally, batch for cross-region aggregates</td></tr>
+        <tr><td>Single vs Multi workspace</td><td>Multi (isolation, compliance)</td><td>Single (simpler ops)</td><td>Multi for regulatory compliance</td></tr>
+        <tr><td>Delta vs Parquet</td><td>Delta Lake end-to-end</td><td>Parquet Bronze + Delta Gold</td><td>Delta end-to-end — ACID, CDF, Time Travel at all layers</td></tr>
+      </table>
+
+      <div class="q-card" style="margin-top:16px;">
+        <div class="qnum">Challenge: "ADLS Gen2 goes down in EU West Europe. What is your DR plan?"</div>
+        <div class="qtext">Walk through your RPO/RTO strategy. Which data can be rebuilt vs must be recovered?</div>
+        <div class="follow">Answer structure: Bronze is rebuildable from Event Hubs (retention 7 days). Silver rebuildable from Bronze. Gold from Silver. Use Azure Paired Region (EU North). GRS storage replication. Automated failover via Azure Traffic Manager for Event Hubs. Test DR quarterly.</div>
+      </div>
+    </div>
+  </div>
+
+  <div class="section">
+    <div class="section-header" onclick="toggleSection(this)">
+      <span class="section-icon">💡</span>
+      <span class="section-title">How to Present System Design (Interview Tips)</span>
+      <span class="section-arrow">▼</span>
+    </div>
+    <div class="section-body">
+      <div class="tip-box">
+        <strong>Structure your answer in 4 phases</strong>
+        <p>1. Clarify (2 min) → 2. High-level diagram (3 min) → 3. Deep dive on bottlenecks (10 min) → 4. Trade-offs and alternatives (5 min). Never skip phase 1 — interviewers penalize candidates who assume requirements.</p>
+      </div>
+      <div class="tip-box">
+        <strong>Talk about what you'd NOT do</strong>
+        <p>"I considered Lambda architecture but rejected it because maintaining two code paths (batch + stream) doubles operational complexity. Kappa with Delta's Time Travel gives us both latency and re-processability."</p>
+      </div>
+      <div class="tip-box">
+        <strong>Name drop with precision</strong>
+        <p>Don't say "a message queue". Say "Kafka with 3 brokers, RF=3, 48 partitions partitioned by account_id to ensure ordered processing per account with ~2MB/s per partition throughput."</p>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- =================== DAY 7 =================== -->
+<div class="day-panel" id="day-6">
+  <div class="day-header">
+    <div class="day-num" style="background:rgba(255,123,114,0.12);color:#ff7b72;">D7</div>
+    <div>
+      <h2>Mock Interview — Full End-to-End</h2>
+      <p>Behavioral · Technical · Coding · System Design · Evaluation Framework</p>
+    </div>
+  </div>
+
+  <div class="section">
+    <div class="section-header open" onclick="toggleSection(this)">
+      <span class="section-icon">🎭</span>
+      <span class="section-title">Round 1: Behavioral (30 min)</span>
+      <span class="section-arrow">▼</span>
+    </div>
+    <div class="section-body open">
+      <p style="color:var(--muted); margin-bottom:12px;">Use STAR format: Situation → Task → Action → Result. Numbers matter. Always quantify impact.</p>
+      <div class="q-card">
+        <div class="qnum">B1</div>
+        <div class="qtext">Tell me about a time a data pipeline you owned caused a significant downstream impact. How did you handle it?</div>
+        <div class="follow">↳ Probe: "What would you do differently?"<br>↳ Probe: "How did you communicate with stakeholders during the incident?"</div>
+      </div>
+      <div class="q-card">
+        <div class="qnum">B2</div>
+        <div class="qtext">Describe the most complex data engineering problem you've solved. Walk me through your technical approach.</div>
+        <div class="follow">↳ Probe: "Why didn't you use [alternative you didn't mention]?"<br>↳ Probe: "How did you measure success?"</div>
+      </div>
+      <div class="q-card">
+        <div class="qnum">B3</div>
+        <div class="qtext">Tell me about a time you disagreed with a technical decision made by your team. What did you do?</div>
+      </div>
+      <div class="q-card">
+        <div class="qnum">B4</div>
+        <div class="qtext">You're given a 3-week project to migrate a critical pipeline to Delta Lake. On Day 10 you realize the timeline is impossible. What do you do?</div>
+      </div>
+      <div class="q-card">
+        <div class="qnum">B5 · Leadership</div>
+        <div class="qtext">How have you improved the data engineering practices of your team? Give a specific example with measurable outcomes.</div>
+      </div>
+    </div>
+  </div>
+
+  <div class="section">
+    <div class="section-header" onclick="toggleSection(this)">
+      <span class="section-icon">⚡</span>
+      <span class="section-title">Round 2: Technical Rapid-Fire (20 min)</span>
+      <span class="section-arrow">▼</span>
+    </div>
+    <div class="section-body">
+      <p style="color:var(--muted); margin-bottom:12px;">These should take 60-90 seconds each. Precision and confidence matter more than length.</p>
+      <div class="q-card"><div class="qnum">T1</div><div class="qtext">What is the difference between Delta Lake's MERGE and a traditional SQL UPSERT?</div></div>
+      <div class="q-card"><div class="qnum">T2</div><div class="qtext">How does Kafka guarantee message ordering within a partition but NOT across partitions?</div></div>
+      <div class="q-card"><div class="qnum">T3</div><div class="qtext">You have 1000 shuffle partitions but only 100 executors. Is this a problem?</div></div>
+      <div class="q-card"><div class="qnum">T4</div><div class="qtext">What is the difference between Spark's Dataset, DataFrame, and RDD API? When would you use each?</div></div>
+      <div class="q-card"><div class="qnum">T5</div><div class="qtext">Explain CAP theorem and where Kafka falls. What about Delta Lake?</div></div>
+      <div class="q-card"><div class="qnum">T6</div><div class="qtext">What is speculative execution in Spark? When does it help and when does it hurt?</div></div>
+      <div class="q-card"><div class="qnum">T7</div><div class="qtext">Explain the difference between Avro, Parquet, and ORC. When would you use each?</div></div>
+      <div class="q-card"><div class="qnum">T8</div><div class="qtext">What happens if your Airflow metadata database goes down? Which pipelines are affected?</div></div>
+    </div>
+  </div>
+
+  <div class="section">
+    <div class="section-header" onclick="toggleSection(this)">
+      <span class="section-icon">💻</span>
+      <span class="section-title">Round 3: Live Coding (45 min)</span>
+      <span class="section-arrow">▼</span>
+    </div>
+    <div class="section-body">
+      <div class="q-card">
+        <div class="qnum">Coding Problem · <span class="diff-badge diff-hard">Hard</span> · 45 min</div>
+        <div class="qtext">You have a transaction table: (txn_id, account_id, amount, txn_type, txn_timestamp, status). Write PySpark code to:<br><br>1. Flag accounts where 3 or more transactions failed within any 1-hour window<br>2. For each flagged account, compute: total attempted amount, success rate, first failure timestamp<br>3. Join with accounts table to get account holder name and tier<br>4. Write result to Delta with partitioning by account_tier and date<br>5. Handle: null amounts, duplicate txn_ids, accounts with no failures</div>
+        <div class="follow">↳ Follow-up: "Your result has 50,000 small files after 30 days. How do you fix this?"<br>↳ Follow-up: "Add a streaming version that detects this in real-time with 5-minute trigger."<br>↳ Follow-up: "What tests would you write for this?"</div>
+      </div>
+      <div class="code-block">
+        <div class="code-label">expected solution skeleton</div>
+        <pre><span class="keyword">from</span> pyspark.sql <span class="keyword">import</span> functions <span class="keyword">as</span> F, Window
+
+txns = spark.table(<span class="string">"finance.transactions"</span>) \
+    .dropDuplicates([<span class="string">"txn_id"</span>]) \
+    .withColumn(<span class="string">"amount"</span>, F.coalesce(F.col(<span class="string">"amount"</span>), F.lit(<span class="num">0.0</span>)))
+
+<span class="comment"># Sliding window: count failures in 1-hour window before each txn</span>
+w = Window.partitionBy(<span class="string">"account_id"</span>) \
+    .orderBy(F.unix_timestamp(<span class="string">"txn_timestamp"</span>)) \
+    .rangeBetween(-<span class="num">3600</span>, <span class="num">0</span>)
+
+flagged_accounts = txns \
+    .withColumn(<span class="string">"is_failed"</span>, (F.col(<span class="string">"status"</span>) == <span class="string">"FAILED"</span>).cast(<span class="string">"int"</span>)) \
+    .withColumn(<span class="string">"failures_in_window"</span>, F.sum(<span class="string">"is_failed"</span>).over(w)) \
+    .filter(F.col(<span class="string">"failures_in_window"</span>) >= <span class="num">3</span>) \
+    .select(<span class="string">"account_id"</span>).distinct()
+
+account_stats = txns.join(flagged_accounts, on=<span class="string">"account_id"</span>, how=<span class="string">"inner"</span>) \
+    .groupBy(<span class="string">"account_id"</span>).agg(
+        F.sum(<span class="string">"amount"</span>).alias(<span class="string">"total_attempted"</span>),
+        (F.sum((F.col(<span class="string">"status"</span>) == <span class="string">"SUCCESS"</span>).cast(<span class="string">"int"</span>)) /
+         F.count(<span class="string">"*"</span>)).alias(<span class="string">"success_rate"</span>),
+        F.min(F.when(F.col(<span class="string">"status"</span>) == <span class="string">"FAILED"</span>, F.col(<span class="string">"txn_timestamp"</span>)))
+         .alias(<span class="string">"first_failure_ts"</span>)
+    )
+
+accounts = spark.table(<span class="string">"dim.accounts"</span>)
+result = account_stats.join(accounts, on=<span class="string">"account_id"</span>, how=<span class="string">"left"</span>) \
+    .withColumn(<span class="string">"report_date"</span>, F.current_date())
+
+result.write.format(<span class="string">"delta"</span>) \
+    .partitionBy(<span class="string">"account_tier"</span>, <span class="string">"report_date"</span>) \
+    .mode(<span class="string">"overwrite"</span>) \
+    .option(<span class="string">"partitionOverwriteMode"</span>, <span class="string">"dynamic"</span>) \
+    .save(<span class="string">"/mnt/gold/flagged_accounts"</span>)</pre>
+      </div>
+    </div>
+  </div>
+
+  <div class="section">
+    <div class="section-header" onclick="toggleSection(this)">
+      <span class="section-icon">🏗️</span>
+      <span class="section-title">Round 4: System Design (45 min)</span>
+      <span class="section-arrow">▼</span>
+    </div>
+    <div class="section-body">
+      <div class="scenario-box">
+        <div class="stitle">Design Prompt: Uber-Scale Trip Analytics Platform</div>
+        <p>Design the data platform for a ride-sharing company. Requirements: 1M trips/day, drivers and riders update location every 5 seconds, real-time surge pricing needs data from last 15 minutes, analysts need to query 2 years of trip history, driver payout calculations must be accurate to the cent, GDPR compliance required.</p>
+      </div>
+      <div class="q-card" style="margin-top:12px;">
+        <div class="qnum">Interviewer will challenge you on:</div>
+        <div class="qtext">1. How do you handle GPS data spikes during peak hours (10x normal volume)?<br>2. Surge pricing needs &lt;1 second latency. Your streaming pipeline has 30-second micro-batches. How do you fix this?<br>3. A driver disputes their payout calculation from 6 months ago. How do you reproduce it exactly?<br>4. EU GDPR: a rider requests data deletion. How does this propagate through Bronze → Silver → Gold?<br>5. Your Silver table has a bug discovered 3 weeks after deployment. How do you reprocess without losing the last 3 weeks of Gold data?</div>
+      </div>
+    </div>
+  </div>
+
+  <div class="section">
+    <div class="section-header" onclick="toggleSection(this)">
+      <span class="section-icon">📊</span>
+      <span class="section-title">Evaluation Framework — How to Score Yourself</span>
+      <span class="section-arrow">▼</span>
+    </div>
+    <div class="section-body">
+      <table>
+        <tr><th>Dimension</th><th>Strong Hire Signal</th><th>No Hire Signal</th></tr>
+        <tr>
+          <td>Spark Internals</td>
+          <td>Explains DAG → stages → tasks, can tune memory fractions, identifies skew from Spark UI metrics</td>
+          <td>Only knows "increase memory", can't explain shuffle</td>
+        </tr>
+        <tr>
+          <td>Delta Lake</td>
+          <td>Explains _delta_log, concurrency model, OPTIMIZE vs Liquid Clustering, CDF for CDC</td>
+          <td>Thinks Delta = just parquet with ACID</td>
+        </tr>
+        <tr>
+          <td>Streaming</td>
+          <td>Designs watermarks correctly, handles late data, explains exactly-once with specifics</td>
+          <td>Confuses at-least-once with exactly-once, no DLQ design</td>
+        </tr>
+        <tr>
+          <td>System Design</td>
+          <td>Discusses trade-offs proactively, handles failure scenarios, quantifies scale</td>
+          <td>Only happy-path design, no failure handling</td>
+        </tr>
+        <tr>
+          <td>Coding</td>
+          <td>Handles null/edge cases, partitions output correctly, writes readable production code</td>
+          <td>Works on happy path only, no null handling, uses collect() unnecessarily</td>
+        </tr>
+        <tr>
+          <td>Communication</td>
+          <td>Structures answer, checks assumptions, admits uncertainty honestly</td>
+          <td>Rambles, doesn't structure, overconfident on unknown topics</td>
+        </tr>
+      </table>
+
+      <div class="tip-box" style="margin-top:16px;">
+        <strong>Your unfair advantage (play it up)</strong>
+        <p>9+ years means you have production war stories. Every technical answer should be grounded in real experience: "When I was at [company], we ran into exactly this — here's what happened and what we learned." This is what junior candidates can't fake.</p>
+      </div>
+      <div class="tip-box">
+        <strong>Phrases that signal seniority</strong>
+        <p>"The trade-off here is..." · "In my experience, the naive approach fails when..." · "I'd first validate the assumption that..." · "Before optimizing, I'd measure to confirm this is actually the bottleneck..." · "This worked for us, but in a different context I'd consider..."</p>
+      </div>
+    </div>
+  </div>
+
+  <div class="section">
+    <div class="section-header" onclick="toggleSection(this)">
+      <span class="section-icon">🎯</span>
+      <span class="section-title">Final Day Checklist — Last 24 Hours</span>
+      <span class="section-arrow">▼</span>
+    </div>
+    <div class="section-body">
+      <ul class="checklist">
+        <li>Review Spark UI screenshot mentally — know every tab and what to look for</li>
+        <li>Re-read Delta Lake transaction log JSON format (know add/remove actions)</li>
+        <li>Practice explaining your best production war story in 3 minutes</li>
+        <li>Rehearse system design for fraud detection (30 sec high-level, 5 min deep dive)</li>
+        <li>Know 3 Databricks-specific features: Photon engine, Unity Catalog, Lakehouse Federation</li>
+        <li>Review AQE config params from memory: spark.sql.adaptive.enabled, skewJoin.enabled, skewedPartitionFactor</li>
+        <li>Prepare 3 questions to ask the interviewer (shows genuine interest)</li>
+        <li>Know your resume stories cold — no hesitation on dates, technologies, outcomes</li>
+      </ul>
+    </div>
+  </div>
+</div>
+
+</div><!-- end container -->
+
+<div class="footer">
+  Built for Rajesh Santha · 9+ Years Data Engineering · Spark / Scala / Azure Databricks / Delta Lake<br>
+  Crack that interview. You've got this.
+</div>
+
+<script>
+function showDay(idx) {
+  document.querySelectorAll('.day-panel').forEach((p,i) => {
+    p.classList.toggle('active', i === idx);
+  });
+  document.querySelectorAll('.nav-btn').forEach((b,i) => {
+    b.classList.toggle('active', i === idx);
+  });
+  window.scrollTo({top: 0, behavior: 'smooth'});
+}
+
+function toggleSection(header) {
+  header.classList.toggle('open');
+  const body = header.nextElementSibling;
+  body.classList.toggle('open');
+}
+</script>
+</body>
+</html>
