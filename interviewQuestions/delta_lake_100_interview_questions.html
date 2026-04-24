@@ -1,0 +1,2524 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Delta Lake — 100 Interview Questions</title>
+<style>
+  :root {
+    --bg: #0d1117; --bg2: #161b22; --bg3: #1c2128;
+    --border: #30363d; --text: #e6edf3; --muted: #8b949e;
+    --green: #56d364; --blue: #79c0ff; --purple: #d2a8ff;
+    --orange: #ffa657; --red: #ff7b72; --teal: #39d353;
+  }
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  body { background: var(--bg); color: var(--text); font-family: 'Segoe UI', system-ui, sans-serif; font-size: 14px; line-height: 1.6; }
+
+  .hero {
+    background: linear-gradient(135deg, #0d1117 0%, #0d2137 60%, #0d1117 100%);
+    border-bottom: 1px solid var(--border);
+    padding: 44px 32px 32px; text-align: center; position: relative; overflow: hidden;
+  }
+  .hero::before {
+    content: ''; position: absolute; top: -60px; left: 50%; transform: translateX(-50%);
+    width: 700px; height: 200px;
+    background: radial-gradient(ellipse, rgba(86,211,100,0.07) 0%, transparent 70%);
+    pointer-events: none;
+  }
+  .hero-logo { font-size: 40px; margin-bottom: 10px; }
+  .hero h1 { font-size: 30px; font-weight: 800; letter-spacing: -0.5px; }
+  .hero h1 span { color: var(--green); }
+  .hero p { color: var(--muted); font-size: 13px; margin-top: 8px; }
+  .hero-stats { display: flex; gap: 24px; justify-content: center; margin-top: 20px; flex-wrap: wrap; }
+  .stat { text-align: center; }
+  .stat-num { font-size: 28px; font-weight: 800; color: var(--green); }
+  .stat-label { font-size: 11px; color: var(--muted); text-transform: uppercase; letter-spacing: 0.5px; }
+
+  .toolbar {
+    position: sticky; top: 0; z-index: 100;
+    background: var(--bg2); border-bottom: 1px solid var(--border);
+    padding: 10px 20px; display: flex; gap: 10px; flex-wrap: wrap; align-items: center;
+  }
+  .search-box {
+    flex: 1; min-width: 200px; background: var(--bg3); border: 1px solid var(--border);
+    border-radius: 6px; padding: 7px 12px; color: var(--text); font-size: 13px; outline: none;
+  }
+  .search-box:focus { border-color: var(--green); }
+  .filter-btn {
+    background: var(--bg3); border: 1px solid var(--border); border-radius: 6px;
+    color: var(--muted); cursor: pointer; padding: 7px 14px; font-size: 12px;
+    transition: all 0.15s; white-space: nowrap;
+  }
+  .filter-btn:hover, .filter-btn.active { color: var(--text); border-color: var(--green); }
+  .filter-btn.active { background: rgba(86,211,100,0.1); color: var(--green); }
+  .count-badge { font-size: 12px; color: var(--muted); margin-left: auto; white-space: nowrap; }
+
+  .container { max-width: 980px; margin: 0 auto; padding: 24px 20px 80px; }
+
+  .category-header {
+    display: flex; align-items: center; gap: 12px;
+    margin: 32px 0 14px; padding-bottom: 10px;
+    border-bottom: 1px solid var(--border);
+  }
+  .cat-icon { font-size: 20px; }
+  .cat-title { font-size: 16px; font-weight: 700; }
+  .cat-count { font-size: 12px; color: var(--muted); background: var(--bg3); padding: 2px 8px; border-radius: 10px; margin-left: auto; }
+
+  .q-card {
+    border: 1px solid var(--border); border-radius: 10px;
+    background: var(--bg2); margin-bottom: 10px;
+    overflow: hidden; transition: border-color 0.15s;
+  }
+  .q-card:hover { border-color: #444c56; }
+  .q-card.hidden { display: none; }
+
+  .q-header {
+    display: flex; align-items: flex-start; gap: 12px;
+    padding: 14px 16px; cursor: pointer; user-select: none;
+  }
+  .q-num {
+    min-width: 32px; height: 32px; border-radius: 6px;
+    display: flex; align-items: center; justify-content: center;
+    font-size: 11px; font-weight: 800; flex-shrink: 0; margin-top: 1px;
+  }
+  .q-text { font-size: 13px; font-weight: 600; color: var(--text); flex: 1; line-height: 1.5; padding-top: 5px; }
+  .q-meta { display: flex; gap: 6px; align-items: center; flex-shrink: 0; margin-top: 6px; }
+
+  .diff { font-size: 10px; padding: 2px 8px; border-radius: 4px; font-weight: 700; text-transform: uppercase; letter-spacing: 0.3px; }
+  .easy { background: rgba(86,211,100,0.15); color: var(--green); }
+  .med { background: rgba(255,166,87,0.15); color: var(--orange); }
+  .hard { background: rgba(255,123,114,0.15); color: var(--red); }
+
+  .q-body { display: none; border-top: 1px solid var(--border); padding: 16px 20px 18px; }
+  .q-body.open { display: block; }
+
+  .answer-section { margin-bottom: 14px; }
+  .answer-section:last-child { margin-bottom: 0; }
+  .answer-label {
+    font-size: 10px; font-weight: 700; text-transform: uppercase; letter-spacing: 0.5px;
+    margin-bottom: 6px; display: flex; align-items: center; gap: 6px;
+  }
+  .answer-label.good { color: var(--green); }
+  .answer-label.bad { color: var(--red); }
+  .answer-label.tip { color: var(--blue); }
+  .answer-label.follow { color: var(--purple); }
+  .answer-label.trap { color: var(--orange); }
+
+  .answer-text { font-size: 13px; color: #c9d1d9; line-height: 1.7; }
+  .answer-text strong { color: var(--text); }
+
+  .code-block {
+    background: #010409; border: 1px solid var(--border); border-radius: 6px;
+    padding: 12px 14px; margin: 10px 0; overflow-x: auto;
+  }
+  .code-block pre { font-family: 'Consolas', 'Monaco', monospace; font-size: 12px; line-height: 1.6; color: #c9d1d9; white-space: pre; }
+  .kw { color: #ff7b72; } .str { color: #a5d6ff; } .cm { color: #8b949e; font-style: italic; }
+  .fn { color: #d2a8ff; } .num { color: #79c0ff; }
+
+  .follow-ups { background: rgba(210,168,255,0.06); border: 1px solid rgba(210,168,255,0.2); border-radius: 6px; padding: 10px 14px; margin-top: 10px; }
+  .follow-ups p { font-size: 12px; color: #c9d1d9; margin-bottom: 4px; }
+  .follow-ups p:last-child { margin-bottom: 0; }
+
+  .trap-box { background: rgba(255,166,87,0.06); border: 1px solid rgba(255,166,87,0.2); border-radius: 6px; padding: 10px 14px; margin-top: 10px; }
+  .trap-box p { font-size: 12px; color: #c9d1d9; }
+
+  .answer-arrow { color: var(--muted); font-size: 12px; transition: transform 0.2s; margin-top: 6px; flex-shrink: 0; }
+  .q-card.open .answer-arrow { transform: rotate(180deg); }
+
+  .no-results { text-align: center; padding: 60px 20px; color: var(--muted); font-size: 14px; display: none; }
+
+  .legend { display: flex; gap: 16px; align-items: center; padding: 10px 20px; border-bottom: 1px solid var(--border); background: var(--bg2); flex-wrap: wrap; }
+  .legend-item { display: flex; align-items: center; gap: 6px; font-size: 12px; color: var(--muted); }
+
+  .toc { background: var(--bg2); border: 1px solid var(--border); border-radius: 10px; padding: 20px 24px; margin-bottom: 28px; }
+  .toc h3 { font-size: 13px; color: var(--muted); text-transform: uppercase; letter-spacing: 0.5px; margin-bottom: 14px; }
+  .toc-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(220px, 1fr)); gap: 8px; }
+  .toc-item { display: flex; align-items: center; gap: 10px; padding: 8px 12px; border-radius: 6px; cursor: pointer; transition: background 0.1s; border: 1px solid transparent; }
+  .toc-item:hover { background: var(--bg3); border-color: var(--border); }
+  .toc-item-icon { font-size: 16px; }
+  .toc-item-text { font-size: 12px; font-weight: 600; }
+  .toc-item-count { font-size: 11px; color: var(--muted); margin-left: auto; }
+
+  @media print {
+    .toolbar, .toc { display: none; }
+    .q-body { display: block !important; }
+    body { background: white; color: black; }
+  }
+</style>
+</head>
+<body>
+
+<div class="hero">
+  <div class="hero-logo">△</div>
+  <h1>Delta Lake <span>100 Interview Questions</span></h1>
+  <p>For Senior Data Engineers · Rajesh Santha · Databricks / Azure / Production-Level</p>
+  <div class="hero-stats">
+    <div class="stat"><div class="stat-num">100</div><div class="stat-label">Questions</div></div>
+    <div class="stat"><div class="stat-num">12</div><div class="stat-label">Categories</div></div>
+    <div class="stat"><div class="stat-num">45</div><div class="stat-label">Hard Questions</div></div>
+    <div class="stat"><div class="stat-num">30</div><div class="stat-label">Code Answers</div></div>
+  </div>
+</div>
+
+<div class="legend">
+  <span class="legend-item"><span class="diff easy">Easy</span> Foundational — must answer instantly</span>
+  <span class="legend-item"><span class="diff med">Medium</span> Applied — needs depth + examples</span>
+  <span class="legend-item"><span class="diff hard">Hard</span> Expert — internals, trade-offs, edge cases</span>
+  <span style="margin-left:auto;font-size:12px;color:var(--muted)">Click any question to expand answer</span>
+</div>
+
+<div class="toolbar">
+  <input class="search-box" type="text" id="searchBox" placeholder="Search questions..." oninput="filterQuestions()">
+  <button class="filter-btn active" onclick="setFilter('all', this)">All</button>
+  <button class="filter-btn" onclick="setFilter('easy', this)">Easy</button>
+  <button class="filter-btn" onclick="setFilter('med', this)">Medium</button>
+  <button class="filter-btn" onclick="setFilter('hard', this)">Hard</button>
+  <span class="count-badge" id="countBadge">100 questions</span>
+</div>
+
+<div class="container">
+
+<div class="toc">
+  <h3>Table of Contents</h3>
+  <div class="toc-grid">
+    <div class="toc-item" onclick="scrollTo('#cat-fundamentals')"><span class="toc-item-icon">📐</span><span class="toc-item-text">Fundamentals & Architecture</span><span class="toc-item-count">10</span></div>
+    <div class="toc-item" onclick="scrollTo('#cat-txlog')"><span class="toc-item-icon">📋</span><span class="toc-item-text">Transaction Log</span><span class="toc-item-count">8</span></div>
+    <div class="toc-item" onclick="scrollTo('#cat-acid')"><span class="toc-item-icon">🔒</span><span class="toc-item-text">ACID & Concurrency</span><span class="toc-item-count">8</span></div>
+    <div class="toc-item" onclick="scrollTo('#cat-merge')"><span class="toc-item-icon">🔀</span><span class="toc-item-text">MERGE / UPSERT</span><span class="toc-item-count">10</span></div>
+    <div class="toc-item" onclick="scrollTo('#cat-optimize')"><span class="toc-item-icon">⚡</span><span class="toc-item-text">OPTIMIZE, ZORDER & Clustering</span><span class="toc-item-count">10</span></div>
+    <div class="toc-item" onclick="scrollTo('#cat-timetravel')"><span class="toc-item-icon">⏳</span><span class="toc-item-text">Time Travel & Vacuum</span><span class="toc-item-count">8</span></div>
+    <div class="toc-item" onclick="scrollTo('#cat-schema')"><span class="toc-item-icon">📊</span><span class="toc-item-text">Schema Evolution</span><span class="toc-item-count">8</span></div>
+    <div class="toc-item" onclick="scrollTo('#cat-cdf')"><span class="toc-item-icon">🔄</span><span class="toc-item-text">Change Data Feed (CDF)</span><span class="toc-item-count">8</span></div>
+    <div class="toc-item" onclick="scrollTo('#cat-streaming')"><span class="toc-item-icon">🌊</span><span class="toc-item-text">Delta + Streaming</span><span class="toc-item-count">8</span></div>
+    <div class="toc-item" onclick="scrollTo('#cat-perf')"><span class="toc-item-icon">🚀</span><span class="toc-item-text">Performance & Tuning</span><span class="toc-item-count">8</span></div>
+    <div class="toc-item" onclick="scrollTo('#cat-databricks')"><span class="toc-item-icon">🧱</span><span class="toc-item-text">Databricks-Specific</span><span class="toc-item-count">8</span></div>
+    <div class="toc-item" onclick="scrollTo('#cat-design')"><span class="toc-item-icon">🏗️</span><span class="toc-item-text">Design & Production</span><span class="toc-item-count">6</span></div>
+  </div>
+</div>
+
+<div id="no-results" class="no-results">No questions match your search.</div>
+
+<!-- ===== CATEGORY 1: FUNDAMENTALS ===== -->
+<div class="category-header" id="cat-fundamentals">
+  <span class="cat-icon">📐</span>
+  <span class="cat-title">Fundamentals & Architecture</span>
+  <span class="cat-count">Q1–Q10</span>
+</div>
+
+<div class="q-card" data-diff="easy" data-tags="fundamentals parquet acid">
+  <div class="q-header" onclick="toggleQ(this)">
+    <div class="q-num easy">1</div>
+    <div class="q-text">What is Delta Lake and how does it differ from plain Parquet on ADLS/S3?</div>
+    <div class="q-meta"><span class="diff easy">Easy</span></div>
+    <span class="answer-arrow">▼</span>
+  </div>
+  <div class="q-body">
+    <div class="answer-section">
+      <div class="answer-label good">✓ Strong Answer</div>
+      <div class="answer-text">Delta Lake is an open-source storage layer that adds <strong>ACID transactions, schema enforcement, scalable metadata handling, and time travel</strong> on top of Parquet files stored in object storage. Plain Parquet = immutable files, no atomicity, no versioning, no concurrent write safety. Delta adds a <strong>transaction log (_delta_log)</strong> — a WAL that tracks every operation (add/remove file, schema change, metadata). This gives you: (1) atomic commits, (2) snapshot isolation, (3) audit history, (4) schema enforcement on write.</div>
+    </div>
+    <div class="answer-section">
+      <div class="answer-label bad">✗ Weak Answer</div>
+      <div class="answer-text">"Delta Lake is like Parquet but better." — No specifics = no confidence. Must name the transaction log and ACID properties.</div>
+    </div>
+    <div class="follow-ups">
+      <div class="answer-label follow">↳ Follow-ups</div>
+      <p>▸ "Can you use Delta Lake without Spark?" (Yes — Delta Standalone, delta-rs in Rust, Python deltalake library)</p>
+      <p>▸ "What does Delta Lake NOT give you that a traditional database does?" (No row-level locking, no primary key enforcement natively, no B-tree indexes)</p>
+    </div>
+  </div>
+</div>
+
+<div class="q-card" data-diff="easy" data-tags="fundamentals medallion bronze silver gold">
+  <div class="q-header" onclick="toggleQ(this)">
+    <div class="q-num easy">2</div>
+    <div class="q-text">Explain the Medallion Architecture (Bronze/Silver/Gold) and what Delta Lake features you use at each layer.</div>
+    <div class="q-meta"><span class="diff easy">Easy</span></div>
+    <span class="answer-arrow">▼</span>
+  </div>
+  <div class="q-body">
+    <div class="answer-section">
+      <div class="answer-label good">✓ Strong Answer</div>
+      <div class="answer-text"><strong>Bronze:</strong> Raw ingestion. Schema-on-read. Enable CDF for downstream CDC. Append-only. Use autoLoader + cloudFiles for incremental ingestion. Retain source format.<br><br><strong>Silver:</strong> Cleansed, validated, deduped. Schema enforcement on. Constraints for data quality. MERGE for upserts. Enable CDF to propagate changes to Gold.<br><br><strong>Gold:</strong> Business-level aggregates. Optimized for BI. Run OPTIMIZE + ZORDER here. Partitioned by date/region. SLA-driven freshness.</div>
+    </div>
+    <div class="follow-ups">
+      <div class="answer-label follow">↳ Follow-ups</div>
+      <p>▸ "When would you skip the Silver layer?" (Fast streaming paths with simple transforms, or when Bronze is already clean enough)</p>
+      <p>▸ "How do you handle a bug in Silver that corrupts 3 days of Gold data?" (Time travel to pre-bug Silver version, reprocess forward)</p>
+    </div>
+  </div>
+</div>
+
+<div class="q-card" data-diff="med" data-tags="fundamentals format parquet storage">
+  <div class="q-header" onclick="toggleQ(this)">
+    <div class="q-num med">3</div>
+    <div class="q-text">Delta Lake stores data as Parquet. So what exactly IS stored in the _delta_log directory?</div>
+    <div class="q-meta"><span class="diff med">Medium</span></div>
+    <span class="answer-arrow">▼</span>
+  </div>
+  <div class="q-body">
+    <div class="answer-section">
+      <div class="answer-label good">✓ Strong Answer</div>
+      <div class="answer-text">_delta_log contains:<br><br>
+      <strong>1. JSON commit files</strong> (00000000000000000001.json): Each commit = one JSON file. Contains actions: <code>add</code> (new file path + stats), <code>remove</code> (deleted file path), <code>metaData</code> (schema, partitioning, table properties), <code>protocol</code> (min reader/writer version), <code>commitInfo</code> (who, when, what operation).<br><br>
+      <strong>2. Checkpoint files</strong> (.parquet, every 10 commits): Aggregate all add/remove actions into a single Parquet file. Spark reads last checkpoint + JSON commits since → current snapshot. Avoids replaying thousands of JSON files.<br><br>
+      <strong>3. _last_checkpoint file</strong>: JSON pointer to latest checkpoint version number.</div>
+    </div>
+    <div class="follow-ups">
+      <div class="answer-label follow">↳ Follow-ups</div>
+      <p>▸ "What happens if a checkpoint file is corrupted?" (Delta falls back to replaying all JSON commits from version 0 — very slow on old tables)</p>
+      <p>▸ "How large can the _delta_log grow? What's the operational concern?" (1M commits = 1M JSON files = slow listing. Run VACUUM to clean old commit files, or enable log compaction)</p>
+    </div>
+  </div>
+</div>
+
+<div class="q-card" data-diff="easy" data-tags="fundamentals read write protocol">
+  <div class="q-header" onclick="toggleQ(this)">
+    <div class="q-num easy">4</div>
+    <div class="q-text">What is the Delta Lake protocol version and why does it matter in production?</div>
+    <div class="q-meta"><span class="diff easy">Easy</span></div>
+    <span class="answer-arrow">▼</span>
+  </div>
+  <div class="q-body">
+    <div class="answer-section">
+      <div class="answer-label good">✓ Strong Answer</div>
+      <div class="answer-text">Protocol action defines <strong>minReaderVersion</strong> and <strong>minWriterVersion</strong> — the minimum Delta Lake library versions that can read/write the table. When you enable features like Deletion Vectors, Liquid Clustering, or Column Mapping, Delta auto-upgrades the protocol. <strong>Risk:</strong> older Spark/Delta clients reading the table get an error: "Delta protocol version not supported." In production with mixed Delta versions across clusters, always check protocol compatibility before enabling new features with <code>DESCRIBE DETAIL table_name</code>.</div>
+    </div>
+  </div>
+</div>
+
+<div class="q-card" data-diff="med" data-tags="fundamentals iceberg hudi comparison">
+  <div class="q-header" onclick="toggleQ(this)">
+    <div class="q-num med">5</div>
+    <div class="q-text">Compare Delta Lake vs Apache Iceberg vs Apache Hudi. When would you choose each?</div>
+    <div class="q-meta"><span class="diff med">Medium</span></div>
+    <span class="answer-arrow">▼</span>
+  </div>
+  <div class="q-body">
+    <div class="answer-section">
+      <div class="answer-label good">✓ Strong Answer</div>
+      <div class="answer-text">
+      <strong>Delta Lake:</strong> Best Spark/Databricks integration. Mature MERGE, CDF, Liquid Clustering. Strong on Azure (native Databricks). Weaker multi-engine support historically (improving with UniForm).<br><br>
+      <strong>Apache Iceberg:</strong> Best multi-engine support (Spark, Flink, Trino, Presto, Snowflake). Hidden partitioning (no partition evolution downtime). Better for multi-cloud, multi-engine shops. AWS heavily invested.<br><br>
+      <strong>Apache Hudi:</strong> Strongest for high-frequency incremental ingestion (record-level upserts). MOR (Merge-on-Read) table type for low-latency writes. Popular in Uber/streaming CDC pipelines.<br><br>
+      <strong>Choose by:</strong> All-Databricks → Delta. Multi-engine / AWS → Iceberg. Sub-minute CDC upserts → Hudi.</div>
+    </div>
+    <div class="trap-box">
+      <div class="answer-label trap">⚠ Trap</div>
+      <p>Don't say "Delta is always better." Interviewers at non-Databricks shops (Snowflake, AWS, Meta) want to hear you know Iceberg/Hudi. Saying only Delta = tunnel vision.</p>
+    </div>
+  </div>
+</div>
+
+<div class="q-card" data-diff="easy" data-tags="fundamentals partition">
+  <div class="q-header" onclick="toggleQ(this)">
+    <div class="q-num easy">6</div>
+    <div class="q-text">What is the difference between Delta table partitioning and ZORDER? Are they the same thing?</div>
+    <div class="q-meta"><span class="diff easy">Easy</span></div>
+    <span class="answer-arrow">▼</span>
+  </div>
+  <div class="q-body">
+    <div class="answer-section">
+      <div class="answer-label good">✓ Strong Answer</div>
+      <div class="answer-text"><strong>Partitioning:</strong> Hive-style directory partitioning. Creates subdirectories per partition value (e.g., /dt=2024-01-01/). Eliminates entire directories from scan via partition pruning. Best for <strong>low-cardinality</strong> filter columns (date, region, status).<br><br>
+      <strong>ZORDER:</strong> Clustering within a partition (or whole table). Co-locates rows with similar column values in same Parquet files. Enables <strong>data skipping</strong> via min/max statistics per file. Best for <strong>high-cardinality</strong> filter columns (user_id, product_id) within a partition.<br><br>
+      <strong>They are complementary, not alternatives.</strong> Common pattern: PARTITION BY date, ZORDER BY user_id within each date partition.</div>
+    </div>
+    <div class="trap-box">
+      <div class="answer-label trap">⚠ Classic Trap</div>
+      <p>ZORDER on a partitioned column = zero effect. Data already split by partition. Don't ZORDER by date if table is partitioned by date.</p>
+    </div>
+  </div>
+</div>
+
+<div class="q-card" data-diff="med" data-tags="fundamentals deletion vectors">
+  <div class="q-header" onclick="toggleQ(this)">
+    <div class="q-num med">7</div>
+    <div class="q-text">What are Deletion Vectors in Delta Lake and how do they improve DELETE/UPDATE performance?</div>
+    <div class="q-meta"><span class="diff med">Medium</span></div>
+    <span class="answer-arrow">▼</span>
+  </div>
+  <div class="q-body">
+    <div class="answer-section">
+      <div class="answer-label good">✓ Strong Answer</div>
+      <div class="answer-text">Traditional Delta DELETE rewrites entire Parquet files — expensive I/O for single-row deletes. <strong>Deletion Vectors (DVs)</strong> mark rows as deleted in a small bitmap file instead of rewriting the data file. The data file stays untouched; DVs are applied at read time to filter out deleted rows.<br><br>
+      <strong>Benefits:</strong> Near-instant deletes (only write a small bitmap). No file rewrite = no write amplification. Files eventually compacted during OPTIMIZE.<br><br>
+      <strong>Enable:</strong> <code>ALTER TABLE t SET TBLPROPERTIES ('delta.enableDeletionVectors' = 'true')</code><br><br>
+      <strong>Trade-off:</strong> Read overhead — must apply DV filter per file. DVs accumulate until OPTIMIZE compacts and physically removes deleted rows.</div>
+    </div>
+  </div>
+</div>
+
+<div class="q-card" data-diff="hard" data-tags="fundamentals column mapping rename">
+  <div class="q-header" onclick="toggleQ(this)">
+    <div class="q-num hard">8</div>
+    <div class="q-text">How does Delta Lake Column Mapping work and what problem does it solve?</div>
+    <div class="q-meta"><span class="diff hard">Hard</span></div>
+    <span class="answer-arrow">▼</span>
+  </div>
+  <div class="q-body">
+    <div class="answer-section">
+      <div class="answer-label good">✓ Strong Answer</div>
+      <div class="answer-text">Without Column Mapping, renaming a column requires rewriting all Parquet files (the physical column name must match the schema name). <strong>Column Mapping</strong> decouples the logical column name (what SQL sees) from the physical column name stored in Parquet.<br><br>
+      Enable: <code>delta.columnMapping.mode = 'name'</code><br><br>
+      Now you can: <code>ALTER TABLE t RENAME COLUMN old_name TO new_name</code> — zero file rewrite. The mapping is stored in the table metadata. Also enables dropping columns without rewriting files.<br><br>
+      <strong>Required for:</strong> Live schema migration on production tables without downtime. Required by Databricks for UC (Unity Catalog) tables in some configurations.</div>
+    </div>
+    <div class="follow-ups">
+      <div class="answer-label follow">↳ Follow-ups</div>
+      <p>▸ "What protocol version does Column Mapping require? Does this break older Delta readers?" (minReaderVersion=2, minWriterVersion=5 — yes, older Delta clients error out)</p>
+    </div>
+  </div>
+</div>
+
+<div class="q-card" data-diff="hard" data-tags="fundamentals uniform iceberg compatibility">
+  <div class="q-header" onclick="toggleQ(this)">
+    <div class="q-num hard">9</div>
+    <div class="q-text">What is UniForm in Delta Lake 3.0+ and when would you use it?</div>
+    <div class="q-meta"><span class="diff hard">Hard</span></div>
+    <span class="answer-arrow">▼</span>
+  </div>
+  <div class="q-body">
+    <div class="answer-section">
+      <div class="answer-label good">✓ Strong Answer</div>
+      <div class="answer-text">UniForm (Universal Format) writes both Delta AND Iceberg metadata for the same underlying Parquet files. Iceberg engines (Trino, Presto, Athena, Snowflake) can read the table as a native Iceberg table. Delta engines read it as Delta. <strong>No data duplication</strong> — same Parquet files, dual metadata.<br><br>
+      <strong>Use case:</strong> Hybrid lakehouse where you write with Spark/Delta but need to query with non-Databricks engines (e.g., Athena for AWS teams, Snowflake for analytics). Eliminates "copy data out of Delta" anti-pattern.<br><br>
+      <strong>Enable:</strong> <code>TBLPROPERTIES ('delta.universalFormat.enabledFormats' = 'iceberg')</code><br><br>
+      <strong>Limitation:</strong> Iceberg metadata generated async — slight lag before Iceberg readers see latest data. Not all Delta features map to Iceberg.</div>
+    </div>
+  </div>
+</div>
+
+<div class="q-card" data-diff="med" data-tags="fundamentals stats data skipping">
+  <div class="q-header" onclick="toggleQ(this)">
+    <div class="q-num med">10</div>
+    <div class="q-text">Explain Delta Lake's data skipping mechanism. What statistics does it collect and how are they used?</div>
+    <div class="q-meta"><span class="diff med">Medium</span></div>
+    <span class="answer-arrow">▼</span>
+  </div>
+  <div class="q-body">
+    <div class="answer-section">
+      <div class="answer-label good">✓ Strong Answer</div>
+      <div class="answer-text">On every write, Delta collects per-Parquet-file statistics and stores them in the transaction log's <code>add</code> action:<br><br>
+      ▸ <strong>numRecords:</strong> Row count per file<br>
+      ▸ <strong>minValues / maxValues:</strong> Per column, per file (first 32 columns by default — configurable via <code>delta.dataSkippingNumIndexedCols</code>)<br>
+      ▸ <strong>nullCount:</strong> Per column, per file<br><br>
+      At query time with a WHERE clause, Delta reads only the stats from _delta_log (fast metadata read) and eliminates files where the filter is outside the min/max range. No Parquet files opened for eliminated files.<br><br>
+      <strong>ZORDER maximizes this</strong> by co-locating data with similar values → narrower min/max ranges per file → more files skipped.</div>
+    </div>
+    <div class="follow-ups">
+      <div class="answer-label follow">↳ Follow-ups</div>
+      <p>▸ "What happens to data skipping for string columns with high cardinality?" (Min/max on strings = lexicographic range — can be effective if data is sorted, poor if random)</p>
+      <p>▸ "Column 33 has no min/max stats. Why?" (Default only indexes first 32 columns. Change with ALTER TABLE SET TBLPROPERTIES('delta.dataSkippingNumIndexedCols'=50))</p>
+    </div>
+  </div>
+</div>
+
+<!-- ===== CATEGORY 2: TRANSACTION LOG ===== -->
+<div class="category-header" id="cat-txlog">
+  <span class="cat-icon">📋</span>
+  <span class="cat-title">Transaction Log Deep Dive</span>
+  <span class="cat-count">Q11–Q18</span>
+</div>
+
+<div class="q-card" data-diff="med" data-tags="txlog checkpoint json">
+  <div class="q-header" onclick="toggleQ(this)">
+    <div class="q-num med">11</div>
+    <div class="q-text">How does Delta reconstruct the current table snapshot from the transaction log? Walk through the algorithm.</div>
+    <div class="q-meta"><span class="diff med">Medium</span></div>
+    <span class="answer-arrow">▼</span>
+  </div>
+  <div class="q-body">
+    <div class="answer-section">
+      <div class="answer-label good">✓ Strong Answer</div>
+      <div class="answer-text">1. Read <code>_last_checkpoint</code> → get latest checkpoint version N<br>
+      2. Read checkpoint Parquet file at version N → get cumulative state (all active files)<br>
+      3. List JSON commit files from version N+1 to latest (e.g., N+1.json, N+2.json, ...)<br>
+      4. Apply each JSON's add/remove actions in order on top of checkpoint state<br>
+      5. Result = current snapshot (set of active Parquet files)<br><br>
+      <strong>Performance:</strong> Checkpoint every 10 commits means max 9 JSON files to read after checkpoint. Without checkpoints, must replay ALL commits from 0 (catastrophic on old tables).</div>
+    </div>
+    <div class="follow-ups">
+      <div class="answer-label follow">↳ Follow-ups</div>
+      <p>▸ "What if _last_checkpoint is missing?" (Delta lists all JSON files in _delta_log, finds highest version, replays from 0 or finds latest checkpoint parquet by listing)</p>
+    </div>
+  </div>
+</div>
+
+<div class="q-card" data-diff="hard" data-tags="txlog commit json structure">
+  <div class="q-header" onclick="toggleQ(this)">
+    <div class="q-num hard">12</div>
+    <div class="q-text">What does a typical Delta commit JSON file contain for an INSERT operation vs a DELETE operation?</div>
+    <div class="q-meta"><span class="diff hard">Hard</span></div>
+    <span class="answer-arrow">▼</span>
+  </div>
+  <div class="q-body">
+    <div class="answer-section">
+      <div class="answer-label good">✓ Strong Answer</div>
+      <div class="answer-text"><strong>INSERT (append):</strong><br>
+      <code>{"commitInfo": {"operation": "WRITE", "operationParameters": {"mode": "Append"}, "timestamp": ...}}</code><br>
+      <code>{"add": {"path": "part-00000.parquet", "size": 12345, "stats": "{\"numRecords\":1000, \"minValues\":{\"id\":1}, \"maxValues\":{\"id\":1000}}"}}</code><br><br>
+      <strong>DELETE:</strong><br>
+      <code>{"commitInfo": {"operation": "DELETE", ...}}</code><br>
+      <code>{"remove": {"path": "part-00000.parquet", "deletionTimestamp": 1234567890, "dataChange": true}}</code><br>
+      <code>{"add": {"path": "part-00001.parquet", "stats": "..."}}</code> ← new file without deleted rows<br><br>
+      DELETE = remove old file + add new file (rewrite). With DVs: remove old file's DV entry (if any), add new DV bitmap — no file rewrite.</div>
+    </div>
+  </div>
+</div>
+
+<div class="q-card" data-diff="hard" data-tags="txlog conflict concurrent">
+  <div class="q-header" onclick="toggleQ(this)">
+    <div class="q-num hard">13</div>
+    <div class="q-text">Two Spark jobs try to commit to the same Delta table at the same time. How does Delta detect and resolve the conflict?</div>
+    <div class="q-meta"><span class="diff hard">Hard</span></div>
+    <span class="answer-arrow">▼</span>
+  </div>
+  <div class="q-body">
+    <div class="answer-section">
+      <div class="answer-label good">✓ Strong Answer</div>
+      <div class="answer-text">Delta uses <strong>Optimistic Concurrency Control (OCC)</strong>:<br><br>
+      1. Writer A reads table at version 5, does work, tries to write version 6<br>
+      2. Writer B also read version 5, tries to write version 6<br>
+      3. Writer A commits first → version 6.json created atomically (object store put-if-absent)<br>
+      4. Writer B tries to write version 6 → file already exists → conflict detected<br>
+      5. Delta checks: did Writer A's commit affect the files Writer B is trying to write?<br>
+      6. If NO overlap (e.g., different partitions) → Writer B re-reads, reapplies changes, commits as version 7<br>
+      7. If YES overlap → ConcurrentModificationException thrown<br><br>
+      <strong>Conflict types:</strong> ConcurrentAppendException, ConcurrentDeleteReadException, ConcurrentDeleteDeleteException, MetadataChangedException.</div>
+    </div>
+    <div class="follow-ups">
+      <div class="answer-label follow">↳ Follow-ups</div>
+      <p>▸ "Two jobs APPEND to different partitions simultaneously. Does this conflict?" (No — append to non-overlapping partitions is conflict-free under Snapshot isolation)</p>
+      <p>▸ "Job A is reading partition dt=2024-01-01. Job B is deleting it. What happens?" (ConcurrentDeleteReadException if isolation = Serializable. Under Snapshot isolation, A continues with snapshot, B commits independently)</p>
+    </div>
+  </div>
+</div>
+
+<div class="q-card" data-diff="hard" data-tags="txlog isolation serializable snapshot">
+  <div class="q-header" onclick="toggleQ(this)">
+    <div class="q-num hard">14</div>
+    <div class="q-text">What is the difference between Serializable and WriteSerializable isolation levels in Delta Lake?</div>
+    <div class="q-meta"><span class="diff hard">Hard</span></div>
+    <span class="answer-arrow">▼</span>
+  </div>
+  <div class="q-body">
+    <div class="answer-section">
+      <div class="answer-label good">✓ Strong Answer</div>
+      <div class="answer-text"><strong>WriteSerializable (default):</strong> Writes are serializable (no write conflicts). Reads may see stale data in some edge cases (concurrent write might not be visible immediately to a concurrent read). Best for most pipelines — higher concurrency, fewer conflicts.<br><br>
+      <strong>Serializable:</strong> Both reads AND writes are serializable. Strongest isolation — matches traditional RDBMS. More conflicts, lower concurrency. Required for financial systems where read-your-own-write consistency matters.<br><br>
+      Set: <code>ALTER TABLE t SET TBLPROPERTIES ('delta.isolationLevel' = 'Serializable')</code></div>
+    </div>
+  </div>
+</div>
+
+<div class="q-card" data-diff="med" data-tags="txlog checkpoint frequency">
+  <div class="q-header" onclick="toggleQ(this)">
+    <div class="q-num med">15</div>
+    <div class="q-text">How often does Delta create checkpoint files and how would you tune this for a high-frequency write table?</div>
+    <div class="q-meta"><span class="diff med">Medium</span></div>
+    <span class="answer-arrow">▼</span>
+  </div>
+  <div class="q-body">
+    <div class="answer-section">
+      <div class="answer-label good">✓ Strong Answer</div>
+      <div class="answer-text">Default: checkpoint every 10 commits. Configurable: <code>delta.checkpointInterval = 10</code> (table property).<br><br>
+      For <strong>high-frequency writes</strong> (streaming, 100 commits/hour): reduce to 5 or even 1. Benefit: snapshot reconstruction faster (fewer JSON replays). Cost: more checkpoint Parquet writes.<br><br>
+      For <strong>low-frequency large batch</strong> tables: keep at 10 or increase to 50. Checkpoint write overhead is significant for large tables.<br><br>
+      Monitor: if snapshot read latency is high, reduce checkpoint interval. If write throughput is bottlenecked, increase it.</div>
+    </div>
+  </div>
+</div>
+
+<div class="q-card" data-diff="med" data-tags="txlog log compaction cleanup">
+  <div class="q-header" onclick="toggleQ(this)">
+    <div class="q-num med">16</div>
+    <div class="q-text">A Delta table has been running for 2 years with daily writes. The _delta_log directory has 730 JSON files. What problems can this cause and how do you fix them?</div>
+    <div class="q-meta"><span class="diff med">Medium</span></div>
+    <span class="answer-arrow">▼</span>
+  </div>
+  <div class="q-body">
+    <div class="answer-section">
+      <div class="answer-label good">✓ Strong Answer</div>
+      <div class="answer-text">730 JSON files is fine — checkpoints every 10 = max 9 JSONs to replay. The actual problem is the <strong>number of add/remove actions across all commits</strong>. Tables with millions of small files generate massive checkpoint Parquet files (billions of add entries).<br><br>
+      <strong>Real problem at scale:</strong> Checkpoint Parquet becomes huge (GBs) → slow to read → slow snapshot construction.<br><br>
+      <strong>Fixes:</strong> (1) OPTIMIZE regularly to compact small files (fewer add entries per checkpoint), (2) VACUUM to remove old remove entries, (3) Enable Delta log compaction (Databricks feature — compacts JSON commits into multi-part checkpoint), (4) Liquid Clustering reduces file churn vs ZORDER.</div>
+    </div>
+  </div>
+</div>
+
+<div class="q-card" data-diff="hard" data-tags="txlog multipart checkpoint">
+  <div class="q-header" onclick="toggleQ(this)">
+    <div class="q-num hard">17</div>
+    <div class="q-text">What is a multi-part checkpoint in Delta Lake and when is it used?</div>
+    <div class="q-meta"><span class="diff hard">Hard</span></div>
+    <span class="answer-arrow">▼</span>
+  </div>
+  <div class="q-body">
+    <div class="answer-section">
+      <div class="answer-label good">✓ Strong Answer</div>
+      <div class="answer-text">When a table has millions of active files, a single checkpoint Parquet becomes enormous (slow to write and read). <strong>Multi-part checkpoints</strong> split the checkpoint into multiple Parquet files written in parallel.<br><br>
+      Format: <code>00000000000000001000.checkpoint.0000000001.0000000003.parquet</code> → checkpoint 1000, part 1 of 3.<br><br>
+      The <code>_last_checkpoint</code> JSON records the number of parts. Reader reads all parts and merges.<br><br>
+      Enabled by: <code>delta.checkpoint.writeStatsAsStruct = true</code> and configured in Databricks. Significantly improves performance on tables with 100M+ active files.</div>
+    </div>
+  </div>
+</div>
+
+<div class="q-card" data-diff="hard" data-tags="txlog metadata scalability">
+  <div class="q-header" onclick="toggleQ(this)">
+    <div class="q-num hard">18</div>
+    <div class="q-text">What is the metadata scalability problem in Delta Lake and how does Delta 3.x/Databricks address it?</div>
+    <div class="q-meta"><span class="diff hard">Hard</span></div>
+    <span class="answer-arrow">▼</span>
+  </div>
+  <div class="q-body">
+    <div class="answer-section">
+      <div class="answer-label good">✓ Strong Answer</div>
+      <div class="answer-text">Problem: All file-level metadata (add/remove actions, stats) stored in _delta_log. For a table with 100M small files → checkpoint = 100M rows → multi-GB Parquet → slow to read just to plan a query.<br><br>
+      <strong>Solutions:</strong><br>
+      ▸ <strong>OPTIMIZE:</strong> Compacts files → fewer add entries needed<br>
+      ▸ <strong>Liquid Clustering:</strong> Manages file count automatically<br>
+      ▸ <strong>Databricks Photon + Delta metadata caching:</strong> Driver caches parsed checkpoint in memory across queries<br>
+      ▸ <strong>Delta 3.2+ Variant type + typed metadata:</strong> More efficient stats encoding<br>
+      ▸ <strong>Unity Catalog metadata accelerator:</strong> Externalizes metadata to a managed service (like a true catalog) bypassing _delta_log bottleneck for very large tables</div>
+    </div>
+  </div>
+</div>
+
+<!-- ===== CATEGORY 3: ACID & CONCURRENCY ===== -->
+<div class="category-header" id="cat-acid">
+  <span class="cat-icon">🔒</span>
+  <span class="cat-title">ACID & Concurrency</span>
+  <span class="cat-count">Q19–Q26</span>
+</div>
+
+<div class="q-card" data-diff="med" data-tags="acid atomicity rollback">
+  <div class="q-header" onclick="toggleQ(this)">
+    <div class="q-num med">19</div>
+    <div class="q-text">How does Delta Lake achieve atomicity? What happens if a Spark job crashes mid-write?</div>
+    <div class="q-meta"><span class="diff med">Medium</span></div>
+    <span class="answer-arrow">▼</span>
+  </div>
+  <div class="q-body">
+    <div class="answer-section">
+      <div class="answer-label good">✓ Strong Answer</div>
+      <div class="answer-text">Atomicity via <strong>commit-or-nothing</strong> model:<br><br>
+      1. Spark writes Parquet data files to a temp <code>_delta_log/.../_tmp</code> path<br>
+      2. Only when ALL files written successfully, a single JSON commit file is atomically written to _delta_log<br>
+      3. Object stores (S3, ADLS) support atomic put-if-absent — guarantees only one writer wins per commit<br><br>
+      <strong>If crash mid-write:</strong> Parquet files exist in storage but no commit JSON references them. Table readers never see these files (they don't appear in any snapshot). On next VACUUM run, orphaned files are cleaned up.<br><br>
+      <strong>Orphan file cleanup:</strong> <code>VACUUM table RETAIN 0 HOURS DRY RUN</code> → shows orphaned files. Remove with VACUUM.</div>
+    </div>
+  </div>
+</div>
+
+<div class="q-card" data-diff="med" data-tags="acid idempotent retry">
+  <div class="q-header" onclick="toggleQ(this)">
+    <div class="q-num med">20</div>
+    <div class="q-text">How do you make a Delta write idempotent? Why is this critical for Airflow retry scenarios?</div>
+    <div class="q-meta"><span class="diff med">Medium</span></div>
+    <span class="answer-arrow">▼</span>
+  </div>
+  <div class="q-body">
+    <div class="answer-section">
+      <div class="answer-label good">✓ Strong Answer</div>
+      <div class="answer-text"><strong>Idempotency strategies:</strong><br><br>
+      ▸ <strong>overwrite + dynamic partition overwrite:</strong> Rewriting same partition multiple times = same result. Set <code>spark.sql.sources.partitionOverwriteMode=dynamic</code>. Safe for retry.<br><br>
+      ▸ <strong>MERGE with unique key:</strong> Same source data MERGEd twice = same result. MERGE is naturally idempotent on key.<br><br>
+      ▸ <strong>txnAppId + txnVersion:</strong> Delta's built-in idempotency. <code>.option("txnAppId", "my_job").option("txnVersion", execution_date)</code>. Delta rejects duplicate (appId, version) pairs. Used in streaming for exactly-once.<br><br>
+      <strong>Why critical for Airflow:</strong> Airflow retries re-run entire task. Without idempotency, retry = duplicate data. With dynamic overwrite or MERGE, retry = safe re-run.</div>
+    </div>
+  </div>
+</div>
+
+<div class="q-card" data-diff="hard" data-tags="acid concurrent read write">
+  <div class="q-header" onclick="toggleQ(this)">
+    <div class="q-num hard">21</div>
+    <div class="q-text">Can two readers and one writer operate on a Delta table simultaneously without locking? Explain exactly what each sees.</div>
+    <div class="q-meta"><span class="diff hard">Hard</span></div>
+    <span class="answer-arrow">▼</span>
+  </div>
+  <div class="q-body">
+    <div class="answer-section">
+      <div class="answer-label good">✓ Strong Answer</div>
+      <div class="answer-text">Yes — Delta uses <strong>MVCC (Multi-Version Concurrency Control)</strong> via snapshots. No read locks.<br><br>
+      ▸ Reader A starts at version 10 → reads snapshot 10 (fixed set of Parquet files)<br>
+      ▸ Writer commits version 11 (adds new files, marks old as removed)<br>
+      ▸ Reader A continues reading version 10 snapshot — unaffected by version 11<br>
+      ▸ Reader B starts after writer → reads version 11 (sees new data)<br><br>
+      Reader A and Reader B see different data simultaneously — this is <strong>Snapshot Isolation</strong>. Neither reader blocks the writer. Writer doesn't block readers. No shared locks. This is fundamentally different from row-level locking in RDBMS.</div>
+    </div>
+  </div>
+</div>
+
+<div class="q-card" data-diff="hard" data-tags="acid concurrent merge conflict">
+  <div class="q-header" onclick="toggleQ(this)">
+    <div class="q-num hard">22</div>
+    <div class="q-text">Two MERGE operations run concurrently on the same Delta table targeting the same set of rows. What happens?</div>
+    <div class="q-meta"><span class="diff hard">Hard</span></div>
+    <span class="answer-arrow">▼</span>
+  </div>
+  <div class="q-body">
+    <div class="answer-section">
+      <div class="answer-label good">✓ Strong Answer</div>
+      <div class="answer-text">Both MERGEs read the table at version N. One commits first (version N+1). Second tries to commit version N+1 — conflict detected.<br><br>
+      Delta checks: did the first MERGE's commit touch any files that the second MERGE also read? Since both target the same rows = same files → <strong>ConcurrentModificationException</strong>.<br><br>
+      <strong>Resolution options:</strong><br>
+      ▸ Retry with backoff (Delta auto-retries up to a limit)<br>
+      ▸ Serialize MERGE operations (upstream queue per table partition)<br>
+      ▸ Partition table and assign different source batches to different partitions<br>
+      ▸ Use single streaming MERGE with foreachBatch (inherently serialized per batch)</div>
+    </div>
+  </div>
+</div>
+
+<div class="q-card" data-diff="med" data-tags="acid overwrite mode">
+  <div class="q-header" onclick="toggleQ(this)">
+    <div class="q-num med">23</div>
+    <div class="q-text">What is the difference between overwrite mode and dynamic partition overwrite in Delta?</div>
+    <div class="q-meta"><span class="diff med">Medium</span></div>
+    <span class="answer-arrow">▼</span>
+  </div>
+  <div class="q-body">
+    <div class="answer-section">
+      <div class="answer-label good">✓ Strong Answer</div>
+      <div class="answer-text"><strong>Static overwrite (mode="overwrite"):</strong> Replaces the ENTIRE table (or partition specified via .partitionBy()). All partitions wiped and rewritten. Dangerous if table has multiple partitions and you only want to refresh one.<br><br>
+      <strong>Dynamic partition overwrite:</strong> Only replaces partitions present in the source DataFrame. Other partitions untouched.<br><br>
+      Enable: <code>spark.conf.set("spark.sql.sources.partitionOverwriteMode", "dynamic")</code> or per-write <code>.option("partitionOverwriteMode", "dynamic")</code><br><br>
+      <strong>Production pattern:</strong> Daily batch jobs use dynamic overwrite — refresh only today's partition without touching yesterday's. Safe for Airflow retries.</div>
+    </div>
+  </div>
+</div>
+
+<div class="q-card" data-diff="hard" data-tags="acid fsck repair">
+  <div class="q-header" onclick="toggleQ(this)">
+    <div class="q-num hard">24</div>
+    <div class="q-text">Your Delta table transaction log is corrupted at version 500. How do you recover?</div>
+    <div class="q-meta"><span class="diff hard">Hard</span></div>
+    <span class="answer-arrow">▼</span>
+  </div>
+  <div class="q-body">
+    <div class="answer-section">
+      <div class="answer-label good">✓ Strong Answer</div>
+      <div class="answer-text">1. <strong>Identify extent:</strong> <code>DESCRIBE HISTORY table</code> — find last valid version<br>
+      2. <strong>Delta FSCK (if available):</strong> <code>FSCK REPAIR TABLE t</code> — removes log entries referencing missing/corrupted files<br>
+      3. <strong>If checkpoint exists before corruption:</strong> Delete corrupted JSON commits, latest checkpoint is valid. Table accessible up to last checkpoint.<br>
+      4. <strong>Worst case — recreate from Parquet:</strong> <code>CREATE TABLE t USING DELTA LOCATION 'path/to/parquet'</code> — Delta scans existing Parquet files and creates a new _delta_log. Loses all history but table is accessible.<br>
+      5. <strong>Prevention:</strong> Enable ADLS soft delete + versioning. Keep checkpoint interval low. Never run VACUUM with RETAIN 0 HOURS.</div>
+    </div>
+  </div>
+</div>
+
+<div class="q-card" data-diff="med" data-tags="acid rollback restore">
+  <div class="q-header" onclick="toggleQ(this)">
+    <div class="q-num med">25</div>
+    <div class="q-text">How do you roll back a Delta table to a previous version? Is it a true rollback?</div>
+    <div class="q-meta"><span class="diff med">Medium</span></div>
+    <span class="answer-arrow">▼</span>
+  </div>
+  <div class="q-body">
+    <div class="answer-section">
+      <div class="answer-label good">✓ Strong Answer</div>
+      <div class="answer-text"><strong>RESTORE command (Delta 0.8+):</strong><br>
+      <code>RESTORE TABLE my_table TO VERSION AS OF 42</code><br>
+      <code>RESTORE TABLE my_table TO TIMESTAMP AS OF '2024-01-15 08:00:00'</code><br><br>
+      <strong>Is it a true rollback?</strong> No — RESTORE creates a new commit that re-adds the files from the target version. The transaction log still contains all intermediate commits. History is preserved. This is RESTORE, not revert.<br><br>
+      <strong>Important:</strong> RESTORE fails if VACUUM has removed the old version's files. Always test restore capability before vacuuming aggressively. Restore re-references old Parquet files, so those files must still exist in storage.</div>
+    </div>
+  </div>
+</div>
+
+<div class="q-card" data-diff="hard" data-tags="acid constraint check">
+  <div class="q-header" onclick="toggleQ(this)">
+    <div class="q-num hard">26</div>
+    <div class="q-text">How do you enforce data quality constraints at the Delta table level (not application level)?</div>
+    <div class="q-meta"><span class="diff hard">Hard</span></div>
+    <span class="answer-arrow">▼</span>
+  </div>
+  <div class="q-body">
+    <div class="answer-section">
+      <div class="answer-label good">✓ Strong Answer</div>
+      <div class="answer-text"><strong>Delta CHECK constraints:</strong><br>
+      <code>ALTER TABLE t ADD CONSTRAINT positive_amount CHECK (amount > 0)</code><br>
+      <code>ALTER TABLE t ADD CONSTRAINT valid_status CHECK (status IN ('active', 'inactive', 'pending'))</code><br><br>
+      Constraint evaluated on every write — any violating row fails the entire write (ACID). Listed in <code>DESCRIBE DETAIL</code> under properties.<br><br>
+      <strong>NOT NULL constraints:</strong> <code>ALTER TABLE t ALTER COLUMN id SET NOT NULL</code><br><br>
+      <strong>Limitation:</strong> No UNIQUE or FOREIGN KEY constraints in Delta. For uniqueness, use MERGE + dedup logic or application-level checks + Great Expectations.</div>
+    </div>
+  </div>
+</div>
+
+<!-- ===== CATEGORY 4: MERGE ===== -->
+<div class="category-header" id="cat-merge">
+  <span class="cat-icon">🔀</span>
+  <span class="cat-title">MERGE / UPSERT</span>
+  <span class="cat-count">Q27–Q36</span>
+</div>
+
+<div class="q-card" data-diff="easy" data-tags="merge upsert basic">
+  <div class="q-header" onclick="toggleQ(this)">
+    <div class="q-num easy">27</div>
+    <div class="q-text">Write the SQL for a basic MERGE (upsert) on a Delta table — insert new, update existing by primary key.</div>
+    <div class="q-meta"><span class="diff easy">Easy</span></div>
+    <span class="answer-arrow">▼</span>
+  </div>
+  <div class="q-body">
+    <div class="code-block"><pre><span class="kw">MERGE INTO</span> target_table <span class="kw">AS</span> tgt
+<span class="kw">USING</span> source_data <span class="kw">AS</span> src
+<span class="kw">ON</span> tgt.id = src.id
+<span class="kw">WHEN MATCHED AND</span> src.updated_at > tgt.updated_at <span class="kw">THEN</span>
+  <span class="kw">UPDATE SET</span>
+    tgt.name = src.name,
+    tgt.amount = src.amount,
+    tgt.updated_at = src.updated_at
+<span class="kw">WHEN NOT MATCHED THEN</span>
+  <span class="kw">INSERT</span> (id, name, amount, updated_at, created_at)
+  <span class="kw">VALUES</span> (src.id, src.name, src.amount, src.updated_at, <span class="fn">CURRENT_TIMESTAMP</span>());</pre></div>
+    <div class="answer-section">
+      <div class="answer-label tip">💡 Key Points</div>
+      <div class="answer-text">▸ Always include update condition (<code>src.updated_at > tgt.updated_at</code>) — prevents overwriting with stale data if source sends duplicates<br>▸ MERGE rewrites all matched files — expect increased write I/O<br>▸ Run OPTIMIZE after heavy MERGE batches to compact small files</div>
+    </div>
+  </div>
+</div>
+
+<div class="q-card" data-diff="med" data-tags="merge performance internals">
+  <div class="q-header" onclick="toggleQ(this)">
+    <div class="q-num med">28</div>
+    <div class="q-text">Explain what Delta does internally when you run a MERGE. How many Spark jobs are triggered?</div>
+    <div class="q-meta"><span class="diff med">Medium</span></div>
+    <span class="answer-arrow">▼</span>
+  </div>
+  <div class="q-body">
+    <div class="answer-section">
+      <div class="answer-label good">✓ Strong Answer</div>
+      <div class="answer-text">MERGE internally executes:<br><br>
+      <strong>Job 1 — Find matching files:</strong> Join source keys against Delta's file statistics (min/max) to identify which Parquet files contain matching rows. Data skipping applied here.<br><br>
+      <strong>Job 2 — Apply changes:</strong> Read identified target files + source → apply MATCHED/NOT MATCHED logic → write new Parquet files. Non-matching target files untouched (copied by reference in commit JSON).<br><br>
+      <strong>Commit:</strong> New JSON with add (new files) + remove (old rewritten files) actions.<br><br>
+      <strong>Total:</strong> 2 Spark jobs + 1 metadata commit. For large targets with good data skipping, Job 1 eliminates most files → Job 2 is small.</div>
+    </div>
+    <div class="follow-ups">
+      <div class="answer-label follow">↳ Follow-ups</div>
+      <p>▸ "If MERGE touches 90% of the table's files, what's the performance impact?" (Essentially a full table rewrite — consider INSERT OVERWRITE on full refresh instead)</p>
+    </div>
+  </div>
+</div>
+
+<div class="q-card" data-diff="hard" data-tags="merge performance partition pruning">
+  <div class="q-header" onclick="toggleQ(this)">
+    <div class="q-num hard">29</div>
+    <div class="q-text">Your MERGE is taking 2 hours. The target is 5TB partitioned by date. Source has 1M rows for only yesterday's date. How do you optimize?</div>
+    <div class="q-meta"><span class="diff hard">Hard</span></div>
+    <span class="answer-arrow">▼</span>
+  </div>
+  <div class="q-body">
+    <div class="answer-section">
+      <div class="answer-label good">✓ Strong Answer</div>
+      <div class="answer-text"><strong>Add partition filter to MERGE condition:</strong><br>
+      <code>ON tgt.id = src.id AND tgt.date = src.date</code><br><br>
+      Delta now applies partition pruning — only reads/rewrites yesterday's partition. Without the date condition, Delta must scan all 5TB to find matching rows.<br><br>
+      <strong>Additional optimizations:</strong><br>
+      ▸ <code>.option("spark.databricks.optimizer.mergeJoinRepartitionDeduplication", "true")</code> — Databricks-specific, deduplicates source<br>
+      ▸ Pre-filter source to only changed records (don't send unchanged rows to MERGE)<br>
+      ▸ Ensure source is partitioned on same key as target before MERGE (avoid full shuffle)<br>
+      ▸ After MERGE: <code>OPTIMIZE table WHERE date = yesterday ZORDER BY (id)</code></div>
+    </div>
+  </div>
+</div>
+
+<div class="q-card" data-diff="hard" data-tags="merge delete not matched by source">
+  <div class="q-header" onclick="toggleQ(this)">
+    <div class="q-num hard">30</div>
+    <div class="q-text">How do you delete rows in a Delta target table that are no longer present in the source using MERGE?</div>
+    <div class="q-meta"><span class="diff hard">Hard</span></div>
+    <span class="answer-arrow">▼</span>
+  </div>
+  <div class="q-body">
+    <div class="code-block"><pre><span class="cm">-- WHEN NOT MATCHED BY SOURCE (Delta 2.4+ / Spark 3.4+)</span>
+<span class="kw">MERGE INTO</span> target <span class="kw">AS</span> tgt
+<span class="kw">USING</span> source <span class="kw">AS</span> src
+<span class="kw">ON</span> tgt.id = src.id
+<span class="kw">WHEN MATCHED THEN</span> <span class="kw">UPDATE SET</span> *
+<span class="kw">WHEN NOT MATCHED THEN</span> <span class="kw">INSERT</span> *
+<span class="kw">WHEN NOT MATCHED BY SOURCE THEN DELETE</span>;</pre></div>
+    <div class="answer-section">
+      <div class="answer-label tip">💡 Key Points</div>
+      <div class="answer-text">▸ "WHEN NOT MATCHED BY SOURCE" = rows in target with no matching source row → DELETE<br>▸ Use with <strong>caution</strong> — if source is a partial update (not full snapshot), this deletes valid rows. Only use when source is a complete replacement of the target dataset.<br>▸ Add partition filter: <code>WHEN NOT MATCHED BY SOURCE AND tgt.date = '2024-01-15' THEN DELETE</code> to scope deletes.</div>
+    </div>
+  </div>
+</div>
+
+<div class="q-card" data-diff="hard" data-tags="merge scd2 pattern">
+  <div class="q-header" onclick="toggleQ(this)">
+    <div class="q-num hard">31</div>
+    <div class="q-text">Design a MERGE-based SCD Type 2 pattern for Delta. How do you handle the "close old record, open new record" requirement in a single MERGE?</div>
+    <div class="q-meta"><span class="diff hard">Hard</span></div>
+    <span class="answer-arrow">▼</span>
+  </div>
+  <div class="q-body">
+    <div class="answer-section">
+      <div class="answer-label good">✓ Strong Answer</div>
+      <div class="answer-text">Single MERGE can't easily insert a new row while updating an existing one. Standard pattern = <strong>2-pass approach</strong>:<br><br>
+      <strong>Pass 1:</strong> MERGE to close current record (UPDATE end_date, set is_current=false)<br>
+      <strong>Pass 2:</strong> INSERT new current records (for changed rows + brand new rows)<br><br>
+      Alternatively, <strong>UNION trick in single MERGE</strong>: Source = changed rows UNION same rows with a "close" flag. Match on business key + is_current — one WHEN clause updates/closes, another inserts new.</div>
+    </div>
+    <div class="code-block"><pre><span class="cm">-- Union approach: stage records to close + new records</span>
+<span class="kw">WITH</span> staged <span class="kw">AS</span> (
+  <span class="cm">-- rows to close: matched + actually changed</span>
+  <span class="kw">SELECT</span> src.*, <span class="str">'UPDATE'</span> <span class="kw">AS</span> _action <span class="kw">FROM</span> source src
+  <span class="kw">JOIN</span> target tgt <span class="kw">ON</span> src.id = tgt.id <span class="kw">AND</span> tgt.is_current = true
+  <span class="kw">UNION ALL</span>
+  <span class="cm">-- rows to insert as new current</span>
+  <span class="kw">SELECT</span> src.*, <span class="str">'INSERT'</span> <span class="kw">AS</span> _action <span class="kw">FROM</span> source src
+)
+<span class="kw">MERGE INTO</span> target tgt <span class="kw">USING</span> staged src
+<span class="kw">ON</span> tgt.id = src.id <span class="kw">AND</span> tgt.is_current = true <span class="kw">AND</span> src._action = <span class="str">'UPDATE'</span>
+<span class="kw">WHEN MATCHED THEN UPDATE SET</span> is_current = false, end_date = src.updated_at
+<span class="kw">WHEN NOT MATCHED AND</span> src._action = <span class="str">'INSERT'</span> <span class="kw">THEN INSERT</span> *;</pre></div>
+  </div>
+</div>
+
+<div class="q-card" data-diff="hard" data-tags="merge schema evolution">
+  <div class="q-header" onclick="toggleQ(this)">
+    <div class="q-num hard">32</div>
+    <div class="q-text">Source DataFrame has a new column not present in the target Delta table. What happens during MERGE and how do you handle it?</div>
+    <div class="q-meta"><span class="diff hard">Hard</span></div>
+    <span class="answer-arrow">▼</span>
+  </div>
+  <div class="q-body">
+    <div class="answer-section">
+      <div class="answer-label good">✓ Strong Answer</div>
+      <div class="answer-text">Default: MERGE fails with AnalysisException — "cannot resolve column new_col in target schema."<br><br>
+      <strong>Fix — enable schema evolution in MERGE:</strong><br>
+      <code>spark.conf.set("spark.databricks.delta.schema.autoMerge.enabled", "true")</code><br>
+      or per-operation: <code>DeltaTable.forPath(...).merge(...).option("mergeSchema", "true")</code><br><br>
+      With autoMerge: new column added to target schema, existing rows get NULL for new column.<br><br>
+      <strong>Risk:</strong> Accidental schema drift from malformed source. Best practice: validate source schema against expected schema before MERGE, only enable autoMerge in bronze layer.</div>
+    </div>
+  </div>
+</div>
+
+<div class="q-card" data-diff="hard" data-tags="merge dedup source">
+  <div class="q-header" onclick="toggleQ(this)">
+    <div class="q-num hard">33</div>
+    <div class="q-text">Source DataFrame for MERGE has duplicate rows for the same primary key. What happens and how do you fix it?</div>
+    <div class="q-meta"><span class="diff hard">Hard</span></div>
+    <span class="answer-arrow">▼</span>
+  </div>
+  <div class="q-body">
+    <div class="answer-section">
+      <div class="answer-label good">✓ Strong Answer</div>
+      <div class="answer-text">MERGE with duplicate source keys = non-deterministic behavior. For the same target row matched by multiple source rows, which UPDATE wins is undefined. Delta may raise an error or apply one non-deterministically.<br><br>
+      <strong>Fix — dedup source before MERGE:</strong></div>
+    </div>
+    <div class="code-block"><pre><span class="cm"># Deduplicate source: keep latest by timestamp per key</span>
+from pyspark.sql import Window
+w = Window.partitionBy(<span class="str">"id"</span>).orderBy(F.col(<span class="str">"updated_at"</span>).desc())
+source_deduped = source_df \
+    .withColumn(<span class="str">"_rn"</span>, F.row_number().over(w)) \
+    .filter(<span class="str">"_rn = 1"</span>) \
+    .drop(<span class="str">"_rn"</span>)
+<span class="cm"># Now safe to MERGE</span></pre></div>
+  </div>
+</div>
+
+<div class="q-card" data-diff="hard" data-tags="merge conditional update">
+  <div class="q-header" onclick="toggleQ(this)">
+    <div class="q-num hard">34</div>
+    <div class="q-text">How do you write a MERGE that updates only specific columns (not all) and only when the value has actually changed?</div>
+    <div class="q-meta"><span class="diff hard">Hard</span></div>
+    <span class="answer-arrow">▼</span>
+  </div>
+  <div class="q-body">
+    <div class="code-block"><pre><span class="kw">MERGE INTO</span> target tgt
+<span class="kw">USING</span> source src <span class="kw">ON</span> tgt.id = src.id
+<span class="kw">WHEN MATCHED AND</span> (
+    tgt.status != src.status <span class="kw">OR</span>
+    tgt.amount != src.amount <span class="kw">OR</span>
+    tgt.name != src.name
+) <span class="kw">THEN</span>
+  <span class="kw">UPDATE SET</span>
+    tgt.status = src.status,
+    tgt.amount = src.amount,
+    tgt.name = src.name,
+    tgt.updated_at = <span class="fn">CURRENT_TIMESTAMP</span>()
+    <span class="cm">-- Note: id, created_at NOT updated</span>
+<span class="kw">WHEN NOT MATCHED THEN</span> <span class="kw">INSERT</span> *;</pre></div>
+    <div class="answer-section">
+      <div class="answer-label tip">💡 Key Points</div>
+      <div class="answer-text">▸ The WHEN MATCHED condition prevents no-op updates — files only rewritten when data actually changed. Reduces write amplification.<br>▸ Watch for NULL comparison: <code>tgt.col != src.col</code> is false when either is NULL. Use <code>NOT (tgt.col &lt;=&gt; src.col)</code> for NULL-safe comparison in Spark SQL.</div>
+    </div>
+  </div>
+</div>
+
+<div class="q-card" data-diff="hard" data-tags="merge streaming foreachbatch">
+  <div class="q-header" onclick="toggleQ(this)">
+    <div class="q-num hard">35</div>
+    <div class="q-text">How do you use MERGE inside a Spark Structured Streaming foreachBatch to achieve exactly-once upserts?</div>
+    <div class="q-meta"><span class="diff hard">Hard</span></div>
+    <span class="answer-arrow">▼</span>
+  </div>
+  <div class="q-body">
+    <div class="code-block"><pre><span class="kw">def</span> upsert_to_delta(batch_df, batch_id):
+    <span class="kw">from</span> delta.tables <span class="kw">import</span> DeltaTable
+    
+    <span class="cm"># Dedup within batch first (Kafka may redeliver)</span>
+    deduped = batch_df.dropDuplicates([<span class="str">"id"</span>])
+    
+    <span class="kw">if</span> deduped.isEmpty(): <span class="kw">return</span>
+    
+    tgt = DeltaTable.forPath(spark, <span class="str">"/mnt/delta/target"</span>)
+    tgt.alias(<span class="str">"t"</span>).merge(
+        deduped.alias(<span class="str">"s"</span>),
+        <span class="str">"t.id = s.id"</span>
+    ).whenMatchedUpdateAll() \
+     .whenNotMatchedInsertAll() \
+     .execute()
+
+query = stream_df.writeStream \
+    .foreachBatch(upsert_to_delta) \
+    .option(<span class="str">"checkpointLocation"</span>, <span class="str">"/mnt/ckpt/target"</span>) \
+    .start()</pre></div>
+    <div class="answer-section">
+      <div class="answer-label tip">💡 Why Exactly-Once</div>
+      <div class="answer-text">Checkpoint tracks Kafka offsets. On restart, same batch_id is replayed. MERGE is idempotent — same source data MERGEd again = same result. Dedup within batch handles Kafka at-least-once delivery. Delta commit = atomic. Combined: exactly-once semantics.</div>
+    </div>
+  </div>
+</div>
+
+<div class="q-card" data-diff="hard" data-tags="merge cost rewrite amplification">
+  <div class="q-header" onclick="toggleQ(this)">
+    <div class="q-num hard">36</div>
+    <div class="q-text">What is "write amplification" in the context of Delta MERGE and how do you minimize it?</div>
+    <div class="q-meta"><span class="diff hard">Hard</span></div>
+    <span class="answer-arrow">▼</span>
+  </div>
+  <div class="q-body">
+    <div class="answer-section">
+      <div class="answer-label good">✓ Strong Answer</div>
+      <div class="answer-text">Write amplification = amount of data written exceeds the actual changed data. MERGE must rewrite entire Parquet files even if only 1 row in each file changed.<br><br>
+      Example: 1000 files × 100MB each = 100GB table. Source has 1 row in each file → all 1000 files rewritten → 100GB write for 1KB of changes.<br><br>
+      <strong>Minimize:</strong><br>
+      ▸ <strong>Partition on write:</strong> Changes concentrated in today's partition → only rewrite today's files<br>
+      ▸ <strong>ZORDER source column:</strong> Changes clustered in fewer files → fewer files rewritten<br>
+      ▸ <strong>Deletion Vectors:</strong> No file rewrite for deletes/updates — just a bitmap<br>
+      ▸ <strong>Low-shuffle MERGE:</strong> Add partition key to MERGE condition for partition pruning<br>
+      ▸ <strong>Larger files:</strong> Fewer total files → fewer rewrite operations</div>
+    </div>
+  </div>
+</div>
+
+<!-- ===== CATEGORY 5: OPTIMIZE & ZORDER ===== -->
+<div class="category-header" id="cat-optimize">
+  <span class="cat-icon">⚡</span>
+  <span class="cat-title">OPTIMIZE, ZORDER & Liquid Clustering</span>
+  <span class="cat-count">Q37–Q46</span>
+</div>
+
+<div class="q-card" data-diff="easy" data-tags="optimize compaction files">
+  <div class="q-header" onclick="toggleQ(this)">
+    <div class="q-num easy">37</div>
+    <div class="q-text">What does OPTIMIZE do in Delta Lake? What is the target file size?</div>
+    <div class="q-meta"><span class="diff easy">Easy</span></div>
+    <span class="answer-arrow">▼</span>
+  </div>
+  <div class="q-body">
+    <div class="answer-section">
+      <div class="answer-label good">✓ Strong Answer</div>
+      <div class="answer-text">OPTIMIZE compacts small Parquet files into larger ones using a <strong>bin-packing algorithm</strong>. Target file size: <strong>1GB by default</strong> (configurable: <code>delta.targetFileSize</code>). Files already at target size untouched.<br><br>
+      <strong>What it does:</strong> Reads small files within a partition, writes fewer large files, removes old small files via _delta_log (add new + remove old).<br><br>
+      <strong>What it does NOT do:</strong> Does NOT globally sort data. Does NOT remove old versions (that's VACUUM). Does NOT reduce data — same rows, fewer files.<br><br>
+      <strong>When to run:</strong> After streaming writes, after many MERGEs, after initial data loads that created many small files. Schedule: daily or after threshold of small files detected.</div>
+    </div>
+  </div>
+</div>
+
+<div class="q-card" data-diff="med" data-tags="optimize zorder space filling curve">
+  <div class="q-header" onclick="toggleQ(this)">
+    <div class="q-num med">38</div>
+    <div class="q-text">Explain how Z-Order curves work mathematically and why they improve multi-dimensional data locality.</div>
+    <div class="q-meta"><span class="diff med">Medium</span></div>
+    <span class="answer-arrow">▼</span>
+  </div>
+  <div class="q-body">
+    <div class="answer-section">
+      <div class="answer-label good">✓ Strong Answer</div>
+      <div class="answer-text">Z-Order (Morton code) interleaves the bits of multiple column values into a single integer. Example with (user_id=5=101, country=3=011): interleaved bits = 011011. Rows sorted by this interleaved value are co-located in Parquet files.<br><br>
+      <strong>Why it works:</strong> Nearby points in 2D space (user_id, country) remain nearby in the 1D Z-curve sort order — much better locality than sorting on one column at a time (which would cluster by first column only).<br><br>
+      <strong>Effect on data skipping:</strong> Files contain data that's similar on ALL Z-ordered columns simultaneously. A query like WHERE user_id BETWEEN 100 AND 200 AND country = 'US' can skip many files because their min/max stats won't overlap with the query range.<br><br>
+      <strong>Limitation:</strong> Z-order effectiveness degrades with 4+ columns (curse of dimensionality — the Z-curve fills the space less efficiently).</div>
+    </div>
+  </div>
+</div>
+
+<div class="q-card" data-diff="hard" data-tags="optimize zorder vs sort">
+  <div class="q-header" onclick="toggleQ(this)">
+    <div class="q-num hard">39</div>
+    <div class="q-text">What is the difference between OPTIMIZE ZORDER BY and a regular SORT BY in Spark before writing? When would you choose each?</div>
+    <div class="q-meta"><span class="diff hard">Hard</span></div>
+    <span class="answer-arrow">▼</span>
+  </div>
+  <div class="q-body">
+    <div class="answer-section">
+      <div class="answer-label good">✓ Strong Answer</div>
+      <div class="answer-text"><strong>SORT BY (single column):</strong> Globally sorts by one column. Min/max range per file is perfectly tight for that column → maximum data skipping for that column. BUT adjacent files may have overlapping ranges for other columns.<br><br>
+      <strong>ZORDER BY (multi-column):</strong> Interleaves multiple columns. No column is perfectly sorted, but ALL specified columns have tighter-than-random ranges per file. Better for multi-column filters.<br><br>
+      <strong>Choose SORT:</strong> Queries always filter on exactly one high-cardinality column. Simple and predictable.<br><br>
+      <strong>Choose ZORDER:</strong> Queries filter on 2-4 columns in combination. Common in analytics (event_date + user_id, country + product_id).<br><br>
+      <strong>OPTIMIZE ZORDER vs df.sort().write:</strong> OPTIMIZE is incremental (skips already-sorted files), post-hoc, and triggers via Delta. df.sort() on write is one-time, requires full shuffle on every write. For ongoing pipelines: OPTIMIZE ZORDER scheduled periodically wins.</div>
+    </div>
+  </div>
+</div>
+
+<div class="q-card" data-diff="hard" data-tags="optimize liquid clustering">
+  <div class="q-header" onclick="toggleQ(this)">
+    <div class="q-num hard">40</div>
+    <div class="q-text">What is Liquid Clustering and how does it solve the limitations of ZORDER? What are its trade-offs?</div>
+    <div class="q-meta"><span class="diff hard">Hard</span></div>
+    <span class="answer-arrow">▼</span>
+  </div>
+  <div class="q-body">
+    <div class="answer-section">
+      <div class="answer-label good">✓ Strong Answer</div>
+      <div class="answer-text"><strong>ZORDER limitations:</strong> Not incremental — rewrites ALL files even if 99% already clustered. Expensive for large tables. Cluster keys baked into OPTIMIZE command (not table-level). Can't change Z-order columns without full rewrite.<br><br>
+      <strong>Liquid Clustering solves all of these:</strong><br>
+      ▸ <strong>Incremental:</strong> Only clusters files that need it. Amortizes cost over time.<br>
+      ▸ <strong>Table-level definition:</strong> <code>CLUSTER BY (user_id, event_date)</code> at CREATE TABLE<br>
+      ▸ <strong>Evolve cluster keys:</strong> <code>ALTER TABLE t CLUSTER BY (new_col)</code> — future OPTIMIZE uses new key<br>
+      ▸ <strong>No partition required:</strong> Works without Hive partitioning (fewer small directory problems)<br><br>
+      <strong>Trade-offs:</strong> Still requires OPTIMIZE to run (just cheaper). Not yet available in all Delta versions (3.1+). May produce slightly different data locality than hand-tuned ZORDER for very specific query patterns.</div>
+    </div>
+    <div class="follow-ups">
+      <div class="answer-label follow">↳ Follow-ups</div>
+      <p>▸ "Can you use both PARTITION BY and CLUSTER BY together?" (Yes — partitioning for coarse-grained elimination, Liquid Clustering within partitions for fine-grained)</p>
+    </div>
+  </div>
+</div>
+
+<div class="q-card" data-diff="hard" data-tags="optimize small files streaming">
+  <div class="q-header" onclick="toggleQ(this)">
+    <div class="q-num hard">41</div>
+    <div class="q-text">A streaming pipeline writes to Delta every 60 seconds. After 1 week it has 10,000 small files (avg 10MB). How do you fix this without stopping the stream?</div>
+    <div class="q-meta"><span class="diff hard">Hard</span></div>
+    <span class="answer-arrow">▼</span>
+  </div>
+  <div class="q-body">
+    <div class="answer-section">
+      <div class="answer-label good">✓ Strong Answer</div>
+      <div class="answer-text"><strong>Option 1 — Auto compaction (Databricks):</strong><br>
+      <code>ALTER TABLE t SET TBLPROPERTIES ('delta.autoOptimize.autoCompact' = 'true')</code><br>
+      Databricks automatically compacts files after each write. Targets 128MB file size (not 1GB). Minor latency overhead per write.<br><br>
+      <strong>Option 2 — Optimized writes (Databricks):</strong><br>
+      <code>spark.conf.set("spark.databricks.delta.optimizeWrite.enabled", "true")</code><br>
+      Coalesces small shuffle output into larger files before writing. Reduces file count at write time.<br><br>
+      <strong>Option 3 — Scheduled OPTIMIZE job:</strong><br>
+      Run <code>OPTIMIZE table WHERE date = yesterday</code> nightly. Compacts previous day's files without touching live partition.<br><br>
+      <strong>Option 4 — Increase trigger interval:</strong><br>
+      60s triggers × 24hr = 1440 files/day. If latency allows, increase to 5 min → 288 files/day. Fewer, larger micro-batches.</div>
+    </div>
+  </div>
+</div>
+
+<div class="q-card" data-diff="med" data-tags="optimize idempotent schedule">
+  <div class="q-header" onclick="toggleQ(this)">
+    <div class="q-num med">42</div>
+    <div class="q-text">Is OPTIMIZE idempotent? What happens if you run it twice on the same table in quick succession?</div>
+    <div class="q-meta"><span class="diff med">Medium</span></div>
+    <span class="answer-arrow">▼</span>
+  </div>
+  <div class="q-body">
+    <div class="answer-section">
+      <div class="answer-label good">✓ Strong Answer</div>
+      <div class="answer-text">Functionally idempotent (same end state), but NOT a no-op. Each OPTIMIZE run creates a new commit in the transaction log, even if nothing was compacted (all files already at target size). This bloats the log.<br><br>
+      Second OPTIMIZE immediately after first = scans files, finds they're all 1GB, compacts nothing, still writes a commit (with no add/remove actions essentially). Harmless but wasteful.<br><br>
+      <strong>Best practice:</strong> Run OPTIMIZE on a schedule (daily/weekly) or conditionally — check small file count before running: <code>DESCRIBE DETAIL table</code> shows numFiles and sizeInBytes. If avg file size &lt; 128MB → run OPTIMIZE.</div>
+    </div>
+  </div>
+</div>
+
+<div class="q-card" data-diff="hard" data-tags="optimize partition pruning partial">
+  <div class="q-header" onclick="toggleQ(this)">
+    <div class="q-num hard">43</div>
+    <div class="q-text">How do you run OPTIMIZE on only a specific partition without affecting the rest of the table?</div>
+    <div class="q-meta"><span class="diff hard">Hard</span></div>
+    <span class="answer-arrow">▼</span>
+  </div>
+  <div class="q-body">
+    <div class="code-block"><pre><span class="cm">-- OPTIMIZE with partition filter (Delta 0.9+)</span>
+OPTIMIZE my_table
+WHERE date >= '2024-01-01' AND date <= '2024-01-07'
+ZORDER BY (user_id, event_type);
+
+<span class="cm">-- PySpark equivalent</span>
+<span class="kw">from</span> delta.tables <span class="kw">import</span> DeltaTable
+dt = DeltaTable.forName(spark, <span class="str">"my_table"</span>)
+dt.optimize() \
+  .where(<span class="str">"date = '2024-01-15'"</span>) \
+  .executeZOrderBy(<span class="str">"user_id"</span>, <span class="str">"event_type"</span>)</pre></div>
+    <div class="answer-section">
+      <div class="answer-label tip">💡 Use Case</div>
+      <div class="answer-text">Nightly pipeline: OPTIMIZE only yesterday's date partition (newly written data). Older partitions already optimized — no need to retouch. Keeps OPTIMIZE job fast even as table grows to years of data.</div>
+    </div>
+  </div>
+</div>
+
+<div class="q-card" data-diff="hard" data-tags="optimize zorder cardinality columns">
+  <div class="q-header" onclick="toggleQ(this)">
+    <div class="q-num hard">44</div>
+    <div class="q-text">You're deciding which columns to ZORDER by. The table has: event_date (300 distinct), user_id (10M distinct), event_type (5 distinct), country (200 distinct). Which columns do you choose and in what order?</div>
+    <div class="q-meta"><span class="diff hard">Hard</span></div>
+    <span class="answer-arrow">▼</span>
+  </div>
+  <div class="q-body">
+    <div class="answer-section">
+      <div class="answer-label good">✓ Strong Answer</div>
+      <div class="answer-text"><strong>Rule 1:</strong> Don't ZORDER on the partition column (event_date if table is partitioned by it).<br><br>
+      <strong>Rule 2:</strong> event_type (5 distinct) = too low cardinality — ZORDER won't help data skipping much. Low cardinality = large min/max ranges per file anyway.<br><br>
+      <strong>Rule 3:</strong> High cardinality columns (user_id, country) benefit most from ZORDER — tighter min/max ranges per file.<br><br>
+      <strong>Recommendation:</strong> <code>ZORDER BY (user_id, country)</code> for queries like WHERE user_id = X AND country = 'US'.<br><br>
+      <strong>Order matters:</strong> First column gets slightly better locality than second. Put the most frequently filtered column first.<br><br>
+      <strong>Max 2-4 columns:</strong> Beyond 4, Z-curve locality degrades rapidly.</div>
+    </div>
+  </div>
+</div>
+
+<div class="q-card" data-diff="hard" data-tags="optimize bloom filter">
+  <div class="q-header" onclick="toggleQ(this)">
+    <div class="q-num hard">45</div>
+    <div class="q-text">What are Bloom Filter indexes in Delta Lake? When would you use them over ZORDER?</div>
+    <div class="q-meta"><span class="diff hard">Hard</span></div>
+    <span class="answer-arrow">▼</span>
+  </div>
+  <div class="q-body">
+    <div class="answer-section">
+      <div class="answer-label good">✓ Strong Answer</div>
+      <div class="answer-text">Bloom Filters are probabilistic data structures that answer "is this value definitely NOT in this file?" with no false negatives (false positives possible — sometimes reads unnecessary files).<br><br>
+      <strong>Create:</strong> <code>CREATE BLOOMFILTER INDEX ON TABLE t FOR COLUMNS (id OPTIONS (fpp=0.1, numItems=50000000))</code><br><br>
+      <strong>Use over ZORDER when:</strong><br>
+      ▸ Queries are point lookups (WHERE id = 'abc123') — ZORDER helps range scans, Bloom filters help point lookups<br>
+      ▸ Column has high cardinality with random distribution (UUIDs, hash IDs) — ZORDER can't cluster random data<br>
+      ▸ Data is already physically clustered (you don't need rewrite, just add an index)<br><br>
+      <strong>fpp parameter:</strong> False positive probability (0.1 = 10% chance of reading unnecessary file). Lower fpp = larger index size. Tune based on query volume vs storage cost.</div>
+    </div>
+  </div>
+</div>
+
+<div class="q-card" data-diff="hard" data-tags="optimize auto databricks">
+  <div class="q-header" onclick="toggleQ(this)">
+    <div class="q-num hard">46</div>
+    <div class="q-text">What is "Auto Optimize" in Databricks and how does it interact with OPTIMIZE ZORDER?</div>
+    <div class="q-meta"><span class="diff hard">Hard</span></div>
+    <span class="answer-arrow">▼</span>
+  </div>
+  <div class="q-body">
+    <div class="answer-section">
+      <div class="answer-label good">✓ Strong Answer</div>
+      <div class="answer-text">Auto Optimize = two Databricks features:<br><br>
+      <strong>1. Optimized Writes:</strong> Before writing, Spark coalesces shuffle partitions to reduce file count. Controlled: <code>spark.databricks.delta.optimizeWrite.enabled</code>. Targets ~128MB files.<br><br>
+      <strong>2. Auto Compact:</strong> After write, asynchronously compacts newly written small files. Runs in background. Controlled: <code>delta.autoOptimize.autoCompact = true</code>.<br><br>
+      <strong>Interaction with ZORDER:</strong> Auto Optimize handles compaction (file size). ZORDER handles clustering (data locality). They complement each other — run OPTIMIZE ZORDER periodically to cluster compacted files. Auto Optimize alone does NOT ZORDER.<br><br>
+      <strong>Caution:</strong> Auto Compact targets 128MB (not 1GB like manual OPTIMIZE). Running manual OPTIMIZE after Auto Compact re-compacts 128MB files into 1GB files — double work. Choose one strategy per table.</div>
+    </div>
+  </div>
+</div>
+
+<!-- ===== CATEGORY 6: TIME TRAVEL & VACUUM ===== -->
+<div class="category-header" id="cat-timetravel">
+  <span class="cat-icon">⏳</span>
+  <span class="cat-title">Time Travel & Vacuum</span>
+  <span class="cat-count">Q47–Q54</span>
+</div>
+
+<div class="q-card" data-diff="easy" data-tags="timetravel version timestamp">
+  <div class="q-header" onclick="toggleQ(this)">
+    <div class="q-num easy">47</div>
+    <div class="q-text">How do you query a Delta table as of a specific version and as of a specific timestamp?</div>
+    <div class="q-meta"><span class="diff easy">Easy</span></div>
+    <span class="answer-arrow">▼</span>
+  </div>
+  <div class="q-body">
+    <div class="code-block"><pre><span class="cm">-- SQL: version</span>
+<span class="kw">SELECT</span> * <span class="kw">FROM</span> my_table <span class="kw">VERSION AS OF</span> <span class="num">42</span>;
+
+<span class="cm">-- SQL: timestamp</span>
+<span class="kw">SELECT</span> * <span class="kw">FROM</span> my_table <span class="kw">TIMESTAMP AS OF</span> <span class="str">'2024-01-15 08:00:00'</span>;
+
+<span class="cm">-- PySpark: version</span>
+df = spark.read.format(<span class="str">"delta"</span>) \
+    .option(<span class="str">"versionAsOf"</span>, <span class="num">42</span>) \
+    .load(<span class="str">"/mnt/delta/my_table"</span>)
+
+<span class="cm">-- PySpark: timestamp</span>
+df = spark.read.format(<span class="str">"delta"</span>) \
+    .option(<span class="str">"timestampAsOf"</span>, <span class="str">"2024-01-15"</span>) \
+    .load(<span class="str">"/mnt/delta/my_table"</span>)</pre></div>
+  </div>
+</div>
+
+<div class="q-card" data-diff="med" data-tags="timetravel vacuum retention">
+  <div class="q-header" onclick="toggleQ(this)">
+    <div class="q-num med">48</div>
+    <div class="q-text">What is the relationship between VACUUM and Time Travel? What is the default retention period and how do you change it?</div>
+    <div class="q-meta"><span class="diff med">Medium</span></div>
+    <span class="answer-arrow">▼</span>
+  </div>
+  <div class="q-body">
+    <div class="answer-section">
+      <div class="answer-label good">✓ Strong Answer</div>
+      <div class="answer-text">VACUUM deletes Parquet files no longer referenced by any current or recent table version. <strong>Default retention: 7 days (168 hours)</strong>. After VACUUM, Time Travel beyond the retention window fails — the old Parquet files are gone.<br><br>
+      <strong>Change retention:</strong><br>
+      <code>ALTER TABLE t SET TBLPROPERTIES ('delta.deletedFileRetentionDuration' = 'interval 30 days')</code><br>
+      or per-VACUUM: <code>VACUUM t RETAIN 720 HOURS</code><br><br>
+      <strong>Override safety check:</strong> Running VACUUM with less than 7 days requires:<br>
+      <code>spark.conf.set("spark.databricks.delta.retentionDurationCheck.enabled", "false")</code><br><br>
+      <strong>NEVER do RETAIN 0 HOURS in production</strong> — breaks all active readers and concurrent writers.</div>
+    </div>
+  </div>
+</div>
+
+<div class="q-card" data-diff="hard" data-tags="timetravel audit compliance">
+  <div class="q-header" onclick="toggleQ(this)">
+    <div class="q-num hard">49</div>
+    <div class="q-text">Design a Time Travel strategy for a financial data pipeline that must support 7-year audit lookbacks (regulatory requirement).</div>
+    <div class="q-meta"><span class="diff hard">Hard</span></div>
+    <span class="answer-arrow">▼</span>
+  </div>
+  <div class="q-body">
+    <div class="answer-section">
+      <div class="answer-label good">✓ Strong Answer</div>
+      <div class="answer-text">7-year VACUUM retention is impractical — billions of orphaned files accumulate. Better strategy:<br><br>
+      <strong>Option 1 — Separate audit table:</strong> Write immutable append-only Delta table with all changes (CDC pattern). Retain audit table forever. Main table uses normal 7-day VACUUM.<br><br>
+      <strong>Option 2 — Point-in-time snapshots:</strong> Monthly snapshot: copy entire table state to a separate path (Delta shallow clone). Retain snapshots per regulatory schedule. VACUUM main table normally.<br><br>
+      <strong>Option 3 — Delta Shallow Clone + Archive:</strong> <code>CREATE TABLE audit_2024_01 SHALLOW CLONE my_table VERSION AS OF X LOCATION 'path'</code>. Clone references same files without copying. Protects files from VACUUM on source (files referenced by clone).<br><br>
+      <strong>Delta Shallow Clone caveat:</strong> If source table is vacuumed, clone files are deleted too. Use DEEP CLONE for true independent archive.</div>
+    </div>
+  </div>
+</div>
+
+<div class="q-card" data-diff="hard" data-tags="timetravel clone shallow deep">
+  <div class="q-header" onclick="toggleQ(this)">
+    <div class="q-num hard">50</div>
+    <div class="q-text">What is the difference between a Delta Shallow Clone and Deep Clone? When would you use each?</div>
+    <div class="q-meta"><span class="diff hard">Hard</span></div>
+    <span class="answer-arrow">▼</span>
+  </div>
+  <div class="q-body">
+    <div class="answer-section">
+      <div class="answer-label good">✓ Strong Answer</div>
+      <div class="answer-text"><strong>Shallow Clone:</strong> Copies only the transaction log (_delta_log) and table metadata. References source's Parquet files by path — NO data copy. Instant creation. Clone breaks if source files are VACUUM'd. Used for: dev/test environments, temporary analysis, cost-free experiments.<br><br>
+      <code>CREATE TABLE dev_table SHALLOW CLONE prod_table</code><br><br>
+      <strong>Deep Clone:</strong> Copies transaction log AND all Parquet files to new location. Independent of source. Takes time + storage. Used for: backups, migrations, production-safe copies, disaster recovery.<br><br>
+      <code>CREATE TABLE backup_table DEEP CLONE prod_table LOCATION '/mnt/backup/prod'</code><br><br>
+      <strong>Incremental deep clone:</strong> Re-running DEEP CLONE only copies new/changed files since last clone — useful for periodic sync.</div>
+    </div>
+  </div>
+</div>
+
+<div class="q-card" data-diff="med" data-tags="timetravel describe history">
+  <div class="q-header" onclick="toggleQ(this)">
+    <div class="q-num med">51</div>
+    <div class="q-text">How do you see the full history of operations on a Delta table and what information does it show?</div>
+    <div class="q-meta"><span class="diff med">Medium</span></div>
+    <span class="answer-arrow">▼</span>
+  </div>
+  <div class="q-body">
+    <div class="code-block"><pre><span class="cm">-- Show full history</span>
+DESCRIBE HISTORY my_table;
+<span class="cm">-- or limit to recent</span>
+DESCRIBE HISTORY my_table LIMIT <span class="num">10</span>;
+
+<span class="cm">-- PySpark</span>
+<span class="kw">from</span> delta.tables <span class="kw">import</span> DeltaTable
+DeltaTable.forName(spark, <span class="str">"my_table"</span>).history().show(truncate=False)</pre></div>
+    <div class="answer-section">
+      <div class="answer-label tip">💡 Columns Returned</div>
+      <div class="answer-text">version, timestamp, userId, userName, <strong>operation</strong> (WRITE/MERGE/DELETE/OPTIMIZE/VACUUM START), operationParameters (mode, predicate), operationMetrics (numFiles, numOutputRows, executionTimeMs), <strong>isBlindAppend</strong>, userMetadata</div>
+    </div>
+  </div>
+</div>
+
+<div class="q-card" data-diff="hard" data-tags="timetravel vacuum dry run orphan">
+  <div class="q-header" onclick="toggleQ(this)">
+    <div class="q-num hard">52</div>
+    <div class="q-text">What are orphan files in Delta Lake? How do they accumulate and how do you clean them safely?</div>
+    <div class="q-meta"><span class="diff hard">Hard</span></div>
+    <span class="answer-arrow">▼</span>
+  </div>
+  <div class="q-body">
+    <div class="answer-section">
+      <div class="answer-label good">✓ Strong Answer</div>
+      <div class="answer-text"><strong>Orphan files:</strong> Parquet files in the table directory that are NOT referenced in any Delta commit (add action). Causes: crashed jobs (wrote files but no commit), manual file uploads, OPTIMIZE leaving temp files.<br><br>
+      <strong>VACUUM handles them:</strong> VACUUM removes files older than retention period that aren't in any snapshot. This catches orphans too.<br><br>
+      <strong>Safe cleanup process:</strong><br>
+      1. <code>VACUUM table DRY RUN</code> — lists files to be deleted without deleting<br>
+      2. Review the list — ensure no active queries reference old versions<br>
+      3. <code>VACUUM table RETAIN 168 HOURS</code> — execute<br><br>
+      <strong>Caution:</strong> Never vacuum while a long-running read query uses an old snapshot. That query's snapshot files might be deleted mid-read → FileNotFoundException.</div>
+    </div>
+  </div>
+</div>
+
+<div class="q-card" data-diff="hard" data-tags="timetravel reproduce ml features">
+  <div class="q-header" onclick="toggleQ(this)">
+    <div class="q-num hard">53</div>
+    <div class="q-text">How would you use Delta Time Travel to reproduce an ML model's training dataset from 3 months ago exactly?</div>
+    <div class="q-meta"><span class="diff hard">Hard</span></div>
+    <span class="answer-arrow">▼</span>
+  </div>
+  <div class="q-body">
+    <div class="answer-section">
+      <div class="answer-label good">✓ Strong Answer</div>
+      <div class="answer-text">Key challenge: must know WHICH version/timestamp was used 3 months ago.<br><br>
+      <strong>Best practice — log version at training time:</strong><br>
+      Store in MLflow experiment: <code>mlflow.log_param("feature_table_version", delta_version)</code><br><br>
+      <strong>Reproduce:</strong><br>
+      <code>df = spark.read.format("delta").option("versionAsOf", logged_version).table("feature_store.user_features")</code><br><br>
+      <strong>If version not logged:</strong> Use <code>DESCRIBE HISTORY</code> to find the commit nearest to 3 months ago, then read by timestamp.<br><br>
+      <strong>Requirement:</strong> VACUUM must NOT have removed those version's files. If VACUUM ran with 7-day retention, 3-month-old data is gone. This is why ML pipelines should use longer retention or log data snapshots at training time.</div>
+    </div>
+  </div>
+</div>
+
+<div class="q-card" data-diff="hard" data-tags="timetravel restore gdpr delete">
+  <div class="q-header" onclick="toggleQ(this)">
+    <div class="q-num hard">54</div>
+    <div class="q-text">A GDPR right-to-erasure request requires deleting a user from your Delta table. But Time Travel means deleted data is still accessible via old versions. How do you handle this?</div>
+    <div class="q-meta"><span class="diff hard">Hard</span></div>
+    <span class="answer-arrow">▼</span>
+  </div>
+  <div class="q-body">
+    <div class="answer-section">
+      <div class="answer-label good">✓ Strong Answer</div>
+      <div class="answer-text">This is a fundamental tension between GDPR and Time Travel. Solutions:<br><br>
+      <strong>Option 1 — Run VACUUM immediately after delete:</strong><br>
+      1. <code>DELETE FROM table WHERE user_id = X</code><br>
+      2. <code>VACUUM table RETAIN 0 HOURS</code> (with safety check disabled)<br>
+      This removes the old files containing the user's data. Destroys all Time Travel history for the table.<br><br>
+      <strong>Option 2 — Pseudonymization (preferred):</strong><br>
+      Store user PII in separate keyed store. Delta table stores only pseudonymous ID. On erasure: delete from PII store → user data effectively erased from Delta's perspective even in old versions.<br><br>
+      <strong>Option 3 — Separate sensitive columns:</strong><br>
+      Split PII into separate Delta table with short retention. Analytical table stores only non-PII. Erasure only targets PII table.</div>
+    </div>
+  </div>
+</div>
+
+<!-- ===== CATEGORY 7: SCHEMA EVOLUTION ===== -->
+<div class="category-header" id="cat-schema">
+  <span class="cat-icon">📊</span>
+  <span class="cat-title">Schema Evolution & Enforcement</span>
+  <span class="cat-count">Q55–Q62</span>
+</div>
+
+<div class="q-card" data-diff="easy" data-tags="schema enforcement evolution">
+  <div class="q-header" onclick="toggleQ(this)">
+    <div class="q-num easy">55</div>
+    <div class="q-text">What is the difference between schema enforcement and schema evolution in Delta Lake?</div>
+    <div class="q-meta"><span class="diff easy">Easy</span></div>
+    <span class="answer-arrow">▼</span>
+  </div>
+  <div class="q-body">
+    <div class="answer-section">
+      <div class="answer-label good">✓ Strong Answer</div>
+      <div class="answer-text"><strong>Schema Enforcement (on by default):</strong> Rejects writes that don't match the existing table schema. New columns in source → AnalysisException. Columns missing in source → NULL for missing (configurable). Protects data quality by preventing unexpected schema drift.<br><br>
+      <strong>Schema Evolution (opt-in):</strong> Allows schema to automatically expand when new columns arrive in source. Enable: <code>.option("mergeSchema", "true")</code> per write, or <code>spark.conf.set("spark.databricks.delta.schema.autoMerge.enabled", "true")</code> globally.<br><br>
+      <strong>What schema evolution does NOT handle:</strong> Column type changes (int → string), column drops, column renames — these require ALTER TABLE or column mapping.</div>
+    </div>
+  </div>
+</div>
+
+<div class="q-card" data-diff="med" data-tags="schema type change incompatible">
+  <div class="q-header" onclick="toggleQ(this)">
+    <div class="q-num med">56</div>
+    <div class="q-text">A source system changes a column from INTEGER to BIGINT. How do you handle this in Delta Lake?</div>
+    <div class="q-meta"><span class="diff med">Medium</span></div>
+    <span class="answer-arrow">▼</span>
+  </div>
+  <div class="q-body">
+    <div class="answer-section">
+      <div class="answer-label good">✓ Strong Answer</div>
+      <div class="answer-text">INT → BIGINT is a <strong>widening type change</strong> — safe (no data loss). Delta supports this via <code>mergeSchema</code>.<br><br>
+      <code>df.write.format("delta").option("mergeSchema", "true").mode("append").save(path)</code><br><br>
+      Delta widens the column type in the schema. Old Parquet files with INT are read as BIGINT automatically (Parquet reader handles widening).<br><br>
+      <strong>Narrowing type change (BIGINT → INT):</strong> Rejected — data loss risk. Must use <code>overwriteSchema=true</code> (full table rewrite) or cast explicitly before writing.<br><br>
+      <strong>ALTER TABLE approach:</strong> <code>ALTER TABLE t CHANGE COLUMN amount amount BIGINT</code> — updates schema metadata, no file rewrite needed for widening.</div>
+    </div>
+  </div>
+</div>
+
+<div class="q-card" data-diff="hard" data-tags="schema column rename drop mapping">
+  <div class="q-header" onclick="toggleQ(this)">
+    <div class="q-num hard">57</div>
+    <div class="q-text">How do you rename a column in a Delta table that's actively being written to by a streaming job? Zero downtime requirement.</div>
+    <div class="q-meta"><span class="diff hard">Hard</span></div>
+    <span class="answer-arrow">▼</span>
+  </div>
+  <div class="q-body">
+    <div class="answer-section">
+      <div class="answer-label good">✓ Strong Answer</div>
+      <div class="answer-text"><strong>Zero-downtime column rename strategy:</strong><br><br>
+      1. Enable Column Mapping: <code>ALTER TABLE t SET TBLPROPERTIES ('delta.columnMapping.mode' = 'name', 'delta.minReaderVersion' = '2', 'delta.minWriterVersion' = '5')</code><br><br>
+      2. Rename column: <code>ALTER TABLE t RENAME COLUMN old_name TO new_name</code> — instant, no file rewrite<br><br>
+      3. Update streaming job to write <code>new_name</code> column (requires code change + restart)<br><br>
+      4. Update readers to use <code>new_name</code><br><br>
+      <strong>Risk during transition:</strong> Old writers still write <code>old_name</code>. Delta's column mapping maps logical <code>new_name</code> to physical <code>old_name</code> in old files. New files written as <code>new_name</code>. Both work simultaneously — no downtime.<br><br>
+      <strong>Caveat:</strong> All Delta readers must support minReaderVersion=2. Check client versions before enabling column mapping.</div>
+    </div>
+  </div>
+</div>
+
+<div class="q-card" data-diff="hard" data-tags="schema multi source evolution">
+  <div class="q-header" onclick="toggleQ(this)">
+    <div class="q-num hard">58</div>
+    <div class="q-text">You have 5 upstream systems writing to the same Delta table with slightly different schemas. How do you design the schema management strategy?</div>
+    <div class="q-meta"><span class="diff hard">Hard</span></div>
+    <span class="answer-arrow">▼</span>
+  </div>
+  <div class="q-body">
+    <div class="answer-section">
+      <div class="answer-label good">✓ Strong Answer</div>
+      <div class="answer-text"><strong>Option 1 — Superset schema (recommended for Bronze):</strong><br>
+      Define a superset schema covering all 5 sources. Each source populates its columns, NULL for others. Enable mergeSchema on arrival of new columns. Add <code>source_system</code> column to track origin.<br><br>
+      <strong>Option 2 — Schema registry with validation:</strong><br>
+      Each source registered in Confluent Schema Registry or custom schema store. Validate before write. Reject unknown columns at ingestion layer. Only approved schemas reach Delta.<br><br>
+      <strong>Option 3 — Separate Bronze tables per source, unified Silver:</strong><br>
+      Each source → own Bronze table (full schema control). Silver MERGE/UNION handles schema harmonization explicitly. More ops overhead but cleaner isolation.<br><br>
+      <strong>Best practice:</strong> Option 1 for Bronze, Option 2 for Silver/Gold. Never allow unbounded mergeSchema on Gold layer — BI tools break on schema drift.</div>
+    </div>
+  </div>
+</div>
+
+<div class="q-card" data-diff="med" data-tags="schema overwrite replace">
+  <div class="q-header" onclick="toggleQ(this)">
+    <div class="q-num med">59</div>
+    <div class="q-text">What does overwriteSchema=true do and when is it dangerous?</div>
+    <div class="q-meta"><span class="diff med">Medium</span></div>
+    <span class="answer-arrow">▼</span>
+  </div>
+  <div class="q-body">
+    <div class="answer-section">
+      <div class="answer-label good">✓ Strong Answer</div>
+      <div class="answer-text"><code>overwriteSchema=true</code> replaces the entire table schema with the source DataFrame's schema, AND rewrites the data. It's equivalent to DROP TABLE + CREATE TABLE + INSERT.<br><br>
+      <strong>Dangerous when:</strong><br>
+      ▸ Table has downstream consumers with hardcoded schema expectations<br>
+      ▸ Mistakenly applied to production table (drops columns = data loss)<br>
+      ▸ Partitioning scheme changes → all queries break<br>
+      ▸ Concurrent readers see schema change mid-query<br><br>
+      <strong>Safe use cases:</strong> Full table rebuild in dev/test, initial data loads, major schema migrations with planned downtime.</div>
+    </div>
+  </div>
+</div>
+
+<div class="q-card" data-diff="hard" data-tags="schema evolution streaming">
+  <div class="q-header" onclick="toggleQ(this)">
+    <div class="q-num hard">60</div>
+    <div class="q-text">A streaming job reading a Delta table fails when a new column is added to the source. How do you handle schema evolution in Spark Structured Streaming reading Delta?</div>
+    <div class="q-meta"><span class="diff hard">Hard</span></div>
+    <span class="answer-arrow">▼</span>
+  </div>
+  <div class="q-body">
+    <div class="answer-section">
+      <div class="answer-label good">✓ Strong Answer</div>
+      <div class="answer-text">When reading Delta as a streaming source, schema changes in the source table cause the stream to fail with UnreadableFileException or AnalysisException.<br><br>
+      <strong>Fix:</strong> <code>.option("schemaTrackingLocation", "/mnt/schema_tracking/my_stream")</code><br>
+      Delta will detect schema changes, update the schema tracking location, and restart the stream automatically with the new schema (Databricks Runtime 12.1+).<br><br>
+      <strong>Alternative:</strong> Handle schema evolution at the application layer — use schema-on-read with from_json and explicitly specify expected schema. New columns → ignored (not in schema). Existing columns → retained.<br><br>
+      <strong>Checkpoint incompatibility:</strong> For major schema changes (type changes, not just additions), you may need to delete checkpoint and restart stream from a new offset.</div>
+    </div>
+  </div>
+</div>
+
+<div class="q-card" data-diff="med" data-tags="schema constraints not null">
+  <div class="q-header" onclick="toggleQ(this)">
+    <div class="q-num med">61</div>
+    <div class="q-text">How do you add a NOT NULL constraint to an existing Delta column that already has NULL values?</div>
+    <div class="q-meta"><span class="diff med">Medium</span></div>
+    <span class="answer-arrow">▼</span>
+  </div>
+  <div class="q-body">
+    <div class="answer-section">
+      <div class="answer-label good">✓ Strong Answer</div>
+      <div class="answer-text">Cannot add NOT NULL to column with existing NULLs — Delta will reject it immediately with AnalysisException.<br><br>
+      <strong>Process:</strong><br>
+      1. Fix existing NULLs: <code>UPDATE table SET col = 'default' WHERE col IS NULL</code><br>
+      2. Verify: <code>SELECT COUNT(*) FROM table WHERE col IS NULL</code> = 0<br>
+      3. Add constraint: <code>ALTER TABLE t ALTER COLUMN col SET NOT NULL</code><br><br>
+      <strong>For large tables:</strong> Step 1 triggers full file rewrite for affected partitions. Plan for write amplification. Run OPTIMIZE after to compact.</div>
+    </div>
+  </div>
+</div>
+
+<div class="q-card" data-diff="hard" data-tags="schema generated columns">
+  <div class="q-header" onclick="toggleQ(this)">
+    <div class="q-num hard">62</div>
+    <div class="q-text">What are Generated Columns in Delta Lake and how do they interact with partitioning and data skipping?</div>
+    <div class="q-meta"><span class="diff hard">Hard</span></div>
+    <span class="answer-arrow">▼</span>
+  </div>
+  <div class="q-body">
+    <div class="answer-section">
+      <div class="answer-label good">✓ Strong Answer</div>
+      <div class="answer-text">Generated Columns are columns whose value is automatically computed from other columns via a deterministic expression, stored physically in Parquet.<br><br>
+      <code>CREATE TABLE events (event_ts TIMESTAMP, event_date DATE GENERATED ALWAYS AS (CAST(event_ts AS DATE))) PARTITIONED BY (event_date)</code><br><br>
+      <strong>Benefit:</strong> You write only <code>event_ts</code>; Delta auto-computes <code>event_date</code>. Partition by generated column → queries with WHERE event_ts = '...' automatically get partition pruning on event_date (Delta infers the partition filter).<br><br>
+      <strong>Data skipping boost:</strong> Generated columns have tight min/max stats (derived from event_ts which is monotonically increasing). Queries get excellent skipping even without ZORDER.<br><br>
+      <strong>Constraint:</strong> Expression must be deterministic. Cannot reference external tables or non-deterministic functions (rand(), now()).</div>
+    </div>
+  </div>
+</div>
+
+<!-- ===== CATEGORY 8: CDF ===== -->
+<div class="category-header" id="cat-cdf">
+  <span class="cat-icon">🔄</span>
+  <span class="cat-title">Change Data Feed (CDF)</span>
+  <span class="cat-count">Q63–Q70</span>
+</div>
+
+<div class="q-card" data-diff="med" data-tags="cdf enable read">
+  <div class="q-header" onclick="toggleQ(this)">
+    <div class="q-num med">63</div>
+    <div class="q-text">How do you enable and read Change Data Feed from a Delta table?</div>
+    <div class="q-meta"><span class="diff med">Medium</span></div>
+    <span class="answer-arrow">▼</span>
+  </div>
+  <div class="q-body">
+    <div class="code-block"><pre><span class="cm">-- Enable on existing table</span>
+ALTER TABLE my_table SET TBLPROPERTIES (delta.enableChangeDataFeed = true);
+
+<span class="cm">-- Enable at create time</span>
+CREATE TABLE my_table (id LONG, name STRING)
+TBLPROPERTIES (delta.enableChangeDataFeed = true);
+
+<span class="cm">-- Read changes from version range (batch)</span>
+df = spark.read.format(<span class="str">"delta"</span>) \
+    .option(<span class="str">"readChangeFeed"</span>, <span class="str">"true"</span>) \
+    .option(<span class="str">"startingVersion"</span>, <span class="num">5</span>) \
+    .option(<span class="str">"endingVersion"</span>, <span class="num">10</span>) \
+    .table(<span class="str">"my_table"</span>)
+
+<span class="cm">-- Read as stream (all changes from version 5 onward)</span>
+stream_df = spark.readStream.format(<span class="str">"delta"</span>) \
+    .option(<span class="str">"readChangeFeed"</span>, <span class="str">"true"</span>) \
+    .option(<span class="str">"startingVersion"</span>, <span class="num">5</span>) \
+    .table(<span class="str">"my_table"</span>)</pre></div>
+    <div class="answer-section">
+      <div class="answer-label tip">💡 Columns Added by CDF</div>
+      <div class="answer-text">_change_type: insert | update_preimage | update_postimage | delete<br>_commit_version: which version this change belongs to<br>_commit_timestamp: timestamp of the commit</div>
+    </div>
+  </div>
+</div>
+
+<div class="q-card" data-diff="hard" data-tags="cdf preimage postimage update">
+  <div class="q-header" onclick="toggleQ(this)">
+    <div class="q-num hard">64</div>
+    <div class="q-text">Explain update_preimage and update_postimage in Delta CDF. How do you use them to detect what specifically changed in an UPDATE?</div>
+    <div class="q-meta"><span class="diff hard">Hard</span></div>
+    <span class="answer-arrow">▼</span>
+  </div>
+  <div class="q-body">
+    <div class="answer-section">
+      <div class="answer-label good">✓ Strong Answer</div>
+      <div class="answer-text">For each UPDATE, CDF produces TWO rows:<br>
+      ▸ <strong>update_preimage:</strong> The BEFORE state of the row (before update)<br>
+      ▸ <strong>update_postimage:</strong> The AFTER state of the row (after update)<br><br>
+      To detect what changed:</div>
+    </div>
+    <div class="code-block"><pre><span class="kw">from</span> pyspark.sql <span class="kw">import</span> functions <span class="kw">as</span> F
+
+changes = spark.read.format(<span class="str">"delta"</span>) \
+    .option(<span class="str">"readChangeFeed"</span>, <span class="str">"true"</span>) \
+    .option(<span class="str">"startingVersion"</span>, start_v) \
+    .table(<span class="str">"customers"</span>)
+
+pre  = changes.filter(<span class="str">"_change_type = 'update_preimage'"</span>)
+post = changes.filter(<span class="str">"_change_type = 'update_postimage'"</span>)
+
+<span class="cm"># Join on key + commit version to detect changed columns</span>
+diff = pre.alias(<span class="str">"pre"</span>).join(
+    post.alias(<span class="str">"post"</span>),
+    [<span class="str">"id"</span>, <span class="str">"_commit_version"</span>]
+).select(
+    F.col(<span class="str">"id"</span>),
+    F.col(<span class="str">"pre.status"</span>).alias(<span class="str">"old_status"</span>),
+    F.col(<span class="str">"post.status"</span>).alias(<span class="str">"new_status"</span>),
+    (F.col(<span class="str">"pre.status"</span>) != F.col(<span class="str">"post.status"</span>)).alias(<span class="str">"status_changed"</span>)
+)</pre></div>
+  </div>
+</div>
+
+<div class="q-card" data-diff="hard" data-tags="cdf gold propagation downstream">
+  <div class="q-header" onclick="toggleQ(this)">
+    <div class="q-num hard">65</div>
+    <div class="q-text">Design a CDC pipeline using Delta CDF that propagates Silver table changes to a Gold aggregation table incrementally (not full recompute).</div>
+    <div class="q-meta"><span class="diff hard">Hard</span></div>
+    <span class="answer-arrow">▼</span>
+  </div>
+  <div class="q-body">
+    <div class="answer-section">
+      <div class="answer-label good">✓ Strong Answer</div>
+      <div class="answer-text">Pattern: read Silver CDF → compute delta aggregates → MERGE into Gold</div>
+    </div>
+    <div class="code-block"><pre><span class="kw">def</span> incremental_gold_update(batch_df, batch_id):
+    <span class="cm"># batch_df = CDF changes from Silver since last checkpoint</span>
+    
+    <span class="cm"># Compute revenue delta from inserts/updates</span>
+    inserts_posts = batch_df.filter(
+        F.col(<span class="str">"_change_type"</span>).isin([<span class="str">"insert"</span>, <span class="str">"update_postimage"</span>])
+    )
+    <span class="cm"># Subtract preimage revenue (reversal of old value)</span>
+    updates_pres = batch_df.filter(
+        F.col(<span class="str">"_change_type"</span>) == <span class="str">"update_preimage"</span>
+    ).withColumn(<span class="str">"amount"</span>, F.col(<span class="str">"amount"</span>) * -<span class="num">1</span>)  <span class="cm"># negate</span>
+    deletes = batch_df.filter(
+        F.col(<span class="str">"_change_type"</span>) == <span class="str">"delete"</span>
+    ).withColumn(<span class="str">"amount"</span>, F.col(<span class="str">"amount"</span>) * -<span class="num">1</span>)
+    
+    delta_agg = inserts_posts.union(updates_pres).union(deletes) \
+        .groupBy(<span class="str">"product_id"</span>, <span class="str">"date"</span>) \
+        .agg(F.sum(<span class="str">"amount"</span>).alias(<span class="str">"revenue_delta"</span>))
+    
+    <span class="cm"># MERGE delta into Gold (additive)</span>
+    DeltaTable.forPath(spark, <span class="str">"/mnt/gold/revenue"</span>) \
+        .alias(<span class="str">"g"</span>).merge(delta_agg.alias(<span class="str">"d"</span>), <span class="str">"g.product_id=d.product_id AND g.date=d.date"</span>) \
+        .whenMatchedUpdate(set={<span class="str">"revenue"</span>: F.col(<span class="str">"g.revenue"</span>) + F.col(<span class="str">"d.revenue_delta"</span>)}) \
+        .whenNotMatchedInsert(values={<span class="str">"product_id"</span>: F.col(<span class="str">"d.product_id"</span>), <span class="str">"date"</span>: F.col(<span class="str">"d.date"</span>), <span class="str">"revenue"</span>: F.col(<span class="str">"d.revenue_delta"</span>)}) \
+        .execute()
+
+spark.readStream.format(<span class="str">"delta"</span>) \
+    .option(<span class="str">"readChangeFeed"</span>, <span class="str">"true"</span>) \
+    .option(<span class="str">"startingVersion"</span>, <span class="num">1</span>) \
+    .table(<span class="str">"silver.orders"</span>) \
+    .writeStream.foreachBatch(incremental_gold_update) \
+    .option(<span class="str">"checkpointLocation"</span>, <span class="str">"/mnt/ckpt/gold_revenue"</span>) \
+    .start()</pre></div>
+  </div>
+</div>
+
+<div class="q-card" data-diff="hard" data-tags="cdf storage overhead cost">
+  <div class="q-header" onclick="toggleQ(this)">
+    <div class="q-num hard">66</div>
+    <div class="q-text">What is the storage overhead of enabling CDF on a Delta table? Should you enable it on all tables?</div>
+    <div class="q-meta"><span class="diff hard">Hard</span></div>
+    <span class="answer-arrow">▼</span>
+  </div>
+  <div class="q-body">
+    <div class="answer-section">
+      <div class="answer-label good">✓ Strong Answer</div>
+      <div class="answer-text">CDF writes additional <strong>change data files</strong> in <code>_change_data/</code> subdirectory for every UPDATE and DELETE operation. INSERT operations are already captured in normal Delta files — no extra CDF files for appends.<br><br>
+      <strong>Storage impact:</strong> For tables with frequent UPDATEs/DELETEs: 50-100% additional storage per changed row (pre + post images). For append-only tables: near zero overhead.<br><br>
+      <strong>CDF files are vacuumed</strong> along with regular Delta files — they respect the same retention period.<br><br>
+      <strong>Enable selectively:</strong><br>
+      ✓ Silver tables feeding incremental Gold computations<br>
+      ✓ Tables feeding event-driven downstream systems<br>
+      ✓ Audit-required tables<br>
+      ✗ Append-only Bronze tables (no benefit, minor overhead)<br>
+      ✗ Tables with extremely high UPDATE frequency (double storage cost)</div>
+    </div>
+  </div>
+</div>
+
+<div class="q-card" data-diff="hard" data-tags="cdf version gap retention">
+  <div class="q-header" onclick="toggleQ(this)">
+    <div class="q-num hard">67</div>
+    <div class="q-text">A CDF consumer has been down for 10 days. VACUUM has run with 7-day retention. What happens when the consumer restarts?</div>
+    <div class="q-meta"><span class="diff hard">Hard</span></div>
+    <span class="answer-arrow">▼</span>
+  </div>
+  <div class="q-body">
+    <div class="answer-section">
+      <div class="answer-label good">✓ Strong Answer</div>
+      <div class="answer-text">Consumer tries to read from its last checkpoint version (10 days ago). VACUUM removed CDF files and Parquet files for that version → <strong>VersionNotFoundException or FileNotFoundException</strong>.<br><br>
+      <strong>Recovery options:</strong><br>
+      1. <strong>Full resync:</strong> Delete consumer checkpoint, read full table snapshot at current version, restart CDF from current version onward. Downstream must handle full reload.<br>
+      2. <strong>Increase CDF retention:</strong> <code>delta.deletedFileRetentionDuration = interval 30 days</code>. Prevents future occurrence but doesn't fix current gap.<br>
+      3. <strong>Monitor consumer lag:</strong> Alert if consumer lag > 5 days (well before 7-day retention threshold).<br><br>
+      <strong>Architecture fix:</strong> For critical CDF consumers, set retention to 30+ days or implement a CDF-to-Kafka bridge (CDF events published to Kafka with its own retention).</div>
+    </div>
+  </div>
+</div>
+
+<div class="q-card" data-diff="hard" data-tags="cdf replace table">
+  <div class="q-header" onclick="toggleQ(this)">
+    <div class="q-num hard">68</div>
+    <div class="q-text">Does CDF capture changes made by INSERT OVERWRITE or REPLACE TABLE? What about OPTIMIZE?</div>
+    <div class="q-meta"><span class="diff hard">Hard</span></div>
+    <span class="answer-arrow">▼</span>
+  </div>
+  <div class="q-body">
+    <div class="answer-section">
+      <div class="answer-label good">✓ Strong Answer</div>
+      <div class="answer-text"><strong>INSERT OVERWRITE:</strong> CDF does NOT capture individual row changes for overwrites. The operation is recorded in history but no pre/post image per row. CDF consumers reading this version see all rows as inserts.<br><br>
+      <strong>REPLACE TABLE:</strong> Treated as DDL operation. CDF returns error if consumer tries to read across this boundary. Consumer must do full resync.<br><br>
+      <strong>OPTIMIZE:</strong> Does NOT generate CDF changes. OPTIMIZE rewrites files but doesn't logically change data. CDF consumers skip OPTIMIZE commits (no _change_data written).<br><br>
+      <strong>RESTORE:</strong> Generates CDF changes — rows that were deleted but restored appear as inserts. Rows that were present but removed appear as deletes.<br><br>
+      <strong>Implication:</strong> CDF works best with MERGE, DELETE, UPDATE operations. Avoid INSERT OVERWRITE on CDF-enabled tables if downstream consumers need row-level changes.</div>
+    </div>
+  </div>
+</div>
+
+<div class="q-card" data-diff="med" data-tags="cdf latency real time">
+  <div class="q-header" onclick="toggleQ(this)">
+    <div class="q-num med">69</div>
+    <div class="q-text">How would you use Delta CDF to build a real-time notification system that alerts users when their order status changes?</div>
+    <div class="q-meta"><span class="diff med">Medium</span></div>
+    <span class="answer-arrow">▼</span>
+  </div>
+  <div class="q-body">
+    <div class="answer-section">
+      <div class="answer-label good">✓ Strong Answer</div>
+      <div class="answer-text">Pipeline: Orders Silver Table (CDF enabled) → Spark Structured Streaming reading CDF → filter status changes → Kafka topic → Notification service<br><br>
+      Key logic: filter <code>_change_type = 'update_postimage'</code> where status column changed. Join with update_preimage to confirm status actually changed (not just other column).<br><br>
+      <strong>Latency:</strong> Delta CDF streaming has micro-batch latency (30s-1min typical). For sub-second notifications, use Kafka as primary CDC source and Delta CDF only for replay/audit. Delta CDF is not a substitute for sub-second event streaming.</div>
+    </div>
+  </div>
+</div>
+
+<div class="q-card" data-diff="hard" data-tags="cdf merge operations">
+  <div class="q-header" onclick="toggleQ(this)">
+    <div class="q-num hard">70</div>
+    <div class="q-text">What CDF change types does a MERGE operation produce? Walk through each WHEN clause and what CDF rows it generates.</div>
+    <div class="q-meta"><span class="diff hard">Hard</span></div>
+    <span class="answer-arrow">▼</span>
+  </div>
+  <div class="q-body">
+    <div class="answer-section">
+      <div class="answer-label good">✓ Strong Answer</div>
+      <div class="answer-text">
+      ▸ <strong>WHEN MATCHED THEN UPDATE:</strong> Produces update_preimage (old row) + update_postimage (new row)<br>
+      ▸ <strong>WHEN NOT MATCHED THEN INSERT:</strong> Produces insert (new row only, no preimage)<br>
+      ▸ <strong>WHEN MATCHED THEN DELETE:</strong> Produces delete (old row, no postimage)<br>
+      ▸ <strong>WHEN NOT MATCHED BY SOURCE THEN DELETE:</strong> Produces delete for each target row without a source match<br><br>
+      A single MERGE can generate all 4 change types in one commit. CDF consumers processing MERGE output should handle all types.</div>
+    </div>
+  </div>
+</div>
+
+<!-- ===== CATEGORY 9: DELTA + STREAMING ===== -->
+<div class="category-header" id="cat-streaming">
+  <span class="cat-icon">🌊</span>
+  <span class="cat-title">Delta + Streaming</span>
+  <span class="cat-count">Q71–Q78</span>
+</div>
+
+<div class="q-card" data-diff="med" data-tags="streaming read delta source">
+  <div class="q-header" onclick="toggleQ(this)">
+    <div class="q-num med">71</div>
+    <div class="q-text">How does Spark Structured Streaming read from a Delta table as a streaming source? What does it track and how?</div>
+    <div class="q-meta"><span class="diff med">Medium</span></div>
+    <span class="answer-arrow">▼</span>
+  </div>
+  <div class="q-body">
+    <div class="answer-section">
+      <div class="answer-label good">✓ Strong Answer</div>
+      <div class="answer-text">Delta source uses <strong>version-based progress tracking</strong> instead of Kafka-style offsets. Checkpoint stores the last Delta version processed. On each trigger:<br><br>
+      1. Read _delta_log to find new commits since last checkpoint version<br>
+      2. Process only new add actions (new files) from those commits<br>
+      3. Update checkpoint with new max version<br><br>
+      <strong>Append-only by default:</strong> Delta streaming source only reads newly added files (inserts). To read updates/deletes: use CDF (<code>readChangeFeed=true</code>) which provides change events.<br><br>
+      <strong>maxFilesPerTrigger / maxBytesPerTrigger:</strong> Rate limits to prevent overwhelming downstream systems on large backlogs.</div>
+    </div>
+  </div>
+</div>
+
+<div class="q-card" data-diff="hard" data-tags="streaming write delta exactly once">
+  <div class="q-header" onclick="toggleQ(this)">
+    <div class="q-num hard">72</div>
+    <div class="q-text">How does Delta Lake achieve exactly-once when used as a streaming sink? What happens on job restart?</div>
+    <div class="q-meta"><span class="diff hard">Hard</span></div>
+    <span class="answer-arrow">▼</span>
+  </div>
+  <div class="q-body">
+    <div class="answer-section">
+      <div class="answer-label good">✓ Strong Answer</div>
+      <div class="answer-text">Delta streaming sink uses <strong>epoch-based idempotency</strong>:<br><br>
+      Each micro-batch has a unique epoch ID (batch_id). Delta stores this in the transaction log commit as <code>txnAppId</code> + <code>txnVersion</code>.<br><br>
+      On job restart: Spark reads last successful epoch from checkpoint. Replays that epoch. Delta checks: "Did I already commit epoch N for this appId?" If yes → commit rejected (duplicate detected). Spark advances to epoch N+1.<br><br>
+      <strong>On restart behavior:</strong> Source re-reads data from checkpoint offset. Delta sink rejects already-committed epochs. Net result: no duplicates in Delta even with Kafka at-least-once source.<br><br>
+      <strong>Requirement:</strong> Must use consistent <code>checkpointLocation</code> across restarts. Changing checkpoint = lose epoch tracking = potential duplicates.</div>
+    </div>
+  </div>
+</div>
+
+<div class="q-card" data-diff="hard" data-tags="streaming trigger once available now">
+  <div class="q-header" onclick="toggleQ(this)">
+    <div class="q-num hard">73</div>
+    <div class="q-text">What is the difference between Trigger.Once and Trigger.AvailableNow in Spark Structured Streaming?</div>
+    <div class="q-meta"><span class="diff hard">Hard</span></div>
+    <span class="answer-arrow">▼</span>
+  </div>
+  <div class="q-body">
+    <div class="answer-section">
+      <div class="answer-label good">✓ Strong Answer</div>
+      <div class="answer-text"><strong>Trigger.Once (deprecated in Spark 3.4):</strong> Processes all available data in ONE micro-batch, then stops. Problem: one giant batch = all data in one Spark job = OOM risk for large backlogs. No parallelism across batches.<br><br>
+      <strong>Trigger.AvailableNow (Spark 3.3+, recommended):</strong> Processes all available data in MULTIPLE micro-batches (respecting maxFilesPerTrigger or maxBytesPerTrigger limits), then stops when all data processed. Better memory usage, more efficient, allows rate limiting.<br><br>
+      <strong>Use case:</strong> Scheduled batch-like streaming (Airflow triggers Delta streaming job daily). AvailableNow processes yesterday's data in manageable chunks, then exits. Airflow marks task complete when stream terminates.</div>
+    </div>
+  </div>
+</div>
+
+<div class="q-card" data-diff="hard" data-tags="streaming checkpoint corruption recovery">
+  <div class="q-header" onclick="toggleQ(this)">
+    <div class="q-num hard">74</div>
+    <div class="q-text">Your streaming job's checkpoint directory on ADLS is corrupted. What are your options and what data risk does each carry?</div>
+    <div class="q-meta"><span class="diff hard">Hard</span></div>
+    <span class="answer-arrow">▼</span>
+  </div>
+  <div class="q-body">
+    <div class="answer-section">
+      <div class="answer-label good">✓ Strong Answer</div>
+      <div class="answer-text"><strong>Option 1 — Restore checkpoint from backup:</strong> Zero data risk if backup is recent. If backup is 2 hours old, stream re-processes 2 hours of data. For Delta sink + MERGE: idempotent, no duplicates. For Delta sink + append: may produce duplicates for re-processed period.<br><br>
+      <strong>Option 2 — Delete checkpoint + restart from latest offset:</strong> <code>startingOffsets=latest</code>. Risk: gap in data between last successful checkpoint and current offset. Unprocessed data is LOST.<br><br>
+      <strong>Option 3 — Delete checkpoint + restart from specific offset:</strong> Manually set <code>startingVersion</code> for Delta source or Kafka partition offsets. Controlled recovery point. Risk: depends on sink idempotency.<br><br>
+      <strong>Prevention:</strong> Enable ADLS soft-delete for checkpoint directory. Use ADLS snapshots. Checkpoint to replicated storage (GRS).</div>
+    </div>
+  </div>
+</div>
+
+<div class="q-card" data-diff="hard" data-tags="streaming rate limiting backpressure">
+  <div class="q-header" onclick="toggleQ(this)">
+    <div class="q-num hard">75</div>
+    <div class="q-text">A streaming job reading from Delta has a 6-hour backlog. How do you process it without overwhelming downstream systems?</div>
+    <div class="q-meta"><span class="diff hard">Hard</span></div>
+    <span class="answer-arrow">▼</span>
+  </div>
+  <div class="q-body">
+    <div class="answer-section">
+      <div class="answer-label good">✓ Strong Answer</div>
+      <div class="answer-text">Rate limit via Delta source options:<br>
+      <code>.option("maxFilesPerTrigger", 10)</code> — process 10 files per micro-batch<br>
+      <code>.option("maxBytesPerTrigger", "512m")</code> — process 512MB per micro-batch<br><br>
+      Downstream (e.g., Gold MERGE): rate of Gold updates controlled by batch size. Downstream services (APIs, notifications) get predictable throughput.<br><br>
+      <strong>Priority ordering during backlog:</strong> Delta reads files in commit version order (oldest first). Critical: this means during backlog catchup, older data processed first = correct ordering for time-sensitive aggregations.<br><br>
+      <strong>Monitor:</strong> Track <code>processedRowsPerSecond</code> vs source event rate. Alert when processing rate &lt; ingestion rate (backlog growing).</div>
+    </div>
+  </div>
+</div>
+
+<div class="q-card" data-diff="hard" data-tags="streaming delta table as sink multiple queries">
+  <div class="q-header" onclick="toggleQ(this)">
+    <div class="q-num hard">76</div>
+    <div class="q-text">Two streaming queries write to the same Delta table simultaneously. What configuration is needed and what are the risks?</div>
+    <div class="q-meta"><span class="diff hard">Hard</span></div>
+    <span class="answer-arrow">▼</span>
+  </div>
+  <div class="q-body">
+    <div class="answer-section">
+      <div class="answer-label good">✓ Strong Answer</div>
+      <div class="answer-text"><strong>Configuration required:</strong> Each query must have its own unique <code>checkpointLocation</code>. Sharing checkpoints = one query corrupts the other's progress tracking.<br><br>
+      <strong>Concurrent writes:</strong> Delta handles concurrent streaming writes via OCC. Each micro-batch commits atomically. If both commit simultaneously, one succeeds first; the other retries (auto-retry built into streaming).<br><br>
+      <strong>Risks:</strong><br>
+      ▸ Increased conflict rate → retry overhead → higher latency<br>
+      ▸ If queries write to overlapping partitions with MERGE: ConcurrentModificationException → retry or failure<br>
+      ▸ Transaction log grows faster (more commits per time unit)<br><br>
+      <strong>Best practice:</strong> Partition writes by source — Query 1 writes partition region=US, Query 2 writes region=EU. Non-overlapping partitions = conflict-free concurrent writes.</div>
+    </div>
+  </div>
+</div>
+
+<div class="q-card" data-diff="hard" data-tags="streaming autoloader cloudfiles incremental">
+  <div class="q-header" onclick="toggleQ(this)">
+    <div class="q-num hard">77</div>
+    <div class="q-text">How does Databricks Auto Loader (cloudFiles) differ from standard readStream for file ingestion into Delta?</div>
+    <div class="q-meta"><span class="diff hard">Hard</span></div>
+    <span class="answer-arrow">▼</span>
+  </div>
+  <div class="q-body">
+    <div class="answer-section">
+      <div class="answer-label good">✓ Strong Answer</div>
+      <div class="answer-text"><strong>Standard readStream (file source):</strong> Lists all files in directory on every trigger. O(n) listing cost where n = total files ever. At 1M files: every trigger does 1M API calls to ADLS → slow + expensive.<br><br>
+      <strong>Auto Loader (cloudFiles):</strong> Uses <strong>file notification mode</strong> (ADLS event grid / S3 SQS) for near-zero listing cost — new files trigger events, not periodic listing. Falls back to <strong>directory listing mode</strong> with incremental listing (only new files since last checkpoint).<br><br>
+      <strong>Additional features:</strong> Schema inference + evolution, file metadata tracking (prevents reprocessing), supports JSON/CSV/Parquet/Avro directly, handles rescue of bad rows.<br><br>
+      <strong>Choose Auto Loader for:</strong> Production ingestion pipelines with growing file counts, any table with &gt;100K files total, need schema inference.<br><br>
+      <strong>Choose standard:</strong> Dev/test, small file counts, non-Databricks environments.</div>
+    </div>
+  </div>
+</div>
+
+<div class="q-card" data-diff="hard" data-tags="streaming delta sink foreachbatch idempotent">
+  <div class="q-header" onclick="toggleQ(this)">
+    <div class="q-num hard">78</div>
+    <div class="q-text">What is the rescue column in Auto Loader and how does it help handle malformed records?</div>
+    <div class="q-meta"><span class="diff hard">Hard</span></div>
+    <span class="answer-arrow">▼</span>
+  </div>
+  <div class="q-body">
+    <div class="answer-section">
+      <div class="answer-label good">✓ Strong Answer</div>
+      <div class="answer-text">When Auto Loader reads a record with unexpected columns or types that don't fit the inferred/declared schema, instead of failing, it stores the problematic columns as a JSON string in the <strong>_rescued_data column</strong>.<br><br>
+      Enable: <code>.option("cloudFiles.rescuedDataColumn", "_rescued_data")</code><br><br>
+      <strong>Benefit:</strong> No data loss on schema mismatch. Malformed records still ingested to Bronze with their raw data preserved. Downstream Silver processing can inspect _rescued_data and handle gracefully.<br><br>
+      <strong>Monitoring:</strong> Alert when _rescued_data IS NOT NULL count exceeds threshold — indicates upstream schema change that needs attention.<br><br>
+      This is critical for production — upstream systems change without warning, and rescue column prevents silent data loss.</div>
+    </div>
+  </div>
+</div>
+
+<!-- ===== CATEGORY 10: PERFORMANCE ===== -->
+<div class="category-header" id="cat-perf">
+  <span class="cat-icon">🚀</span>
+  <span class="cat-title">Performance & Tuning</span>
+  <span class="cat-count">Q79–Q86</span>
+</div>
+
+<div class="q-card" data-diff="hard" data-tags="performance read latency slow">
+  <div class="q-header" onclick="toggleQ(this)">
+    <div class="q-num hard">79</div>
+    <div class="q-text">A Delta table query that used to take 30 seconds now takes 10 minutes with no code changes. What is your diagnosis process?</div>
+    <div class="q-meta"><span class="diff hard">Hard</span></div>
+    <span class="answer-arrow">▼</span>
+  </div>
+  <div class="q-body">
+    <div class="answer-section">
+      <div class="answer-label good">✓ Strong Answer</div>
+      <div class="answer-text"><strong>Step 1 — Check file count:</strong> <code>DESCRIBE DETAIL table</code> → numFiles. Was it 100 files last month, now 50,000? Small file proliferation from streaming/MERGE.<br><br>
+      <strong>Step 2 — Check data skipping effectiveness:</strong> Spark UI → SQL tab → scan metrics: "number of files read" vs "number of files skipped". If skipping dropped, ZORDER may have been invalidated by schema change or new data distribution.<br><br>
+      <strong>Step 3 — Check query plan:</strong> <code>EXPLAIN FORMATTED SELECT ...</code> → is partition pruning applied? Did a predicate change make pruning ineffective?<br><br>
+      <strong>Step 4 — Check _delta_log size:</strong> Large checkpoint file → slow snapshot construction. Run OPTIMIZE to reduce file count.<br><br>
+      <strong>Step 5 — Check data volume:</strong> Did input data grow 10x? Is the query's complexity scaling linearly?<br><br>
+      <strong>Step 6 — Check cluster configuration:</strong> Was cluster downsized? Auto-scaling behaving differently?</div>
+    </div>
+  </div>
+</div>
+
+<div class="q-card" data-diff="hard" data-tags="performance write speed throughput">
+  <div class="q-header" onclick="toggleQ(this)">
+    <div class="q-num hard">80</div>
+    <div class="q-text">How do you maximize Delta write throughput for a high-volume batch ingestion job (1TB/hour)?</div>
+    <div class="q-meta"><span class="diff hard">Hard</span></div>
+    <span class="answer-arrow">▼</span>
+  </div>
+  <div class="q-body">
+    <div class="answer-section">
+      <div class="answer-label good">✓ Strong Answer</div>
+      <div class="answer-text">
+      ▸ <strong>Repartition before write:</strong> Match output partitions to cluster parallelism. 1TB / 512MB target file size = ~2000 partitions. <code>df.repartition(2000).write...</code><br>
+      ▸ <strong>Disable unnecessary ZORDER on write:</strong> Don't sort on write for streaming — use OPTIMIZE batch job.<br>
+      ▸ <strong>Use Photon engine (Databricks):</strong> Vectorized Parquet writer — 5-10x faster than JVM writer.<br>
+      ▸ <strong>Columnar compression:</strong> Use Parquet with snappy (default) or zstd for better throughput/compression ratio.<br>
+      ▸ <strong>Tune ADLS throughput:</strong> Increase Databricks cluster with high-memory instances for write-heavy workloads. ADLS Gen2 supports up to 2 Gbps per storage account — monitor for throttling.<br>
+      ▸ <strong>Avoid small file problem:</strong> Use optimized writes. Don't partition by high-cardinality column (creates thousands of small files).<br>
+      ▸ <strong>Skip OPTIMIZE on write:</strong> Run as separate job after ingestion — don't block ingestion with compaction.</div>
+    </div>
+  </div>
+</div>
+
+<div class="q-card" data-diff="hard" data-tags="performance partition elimination skipping">
+  <div class="q-header" onclick="toggleQ(this)">
+    <div class="q-num hard">81</div>
+    <div class="q-text">Your query has WHERE dt = '2024-01-15' but Spark is still reading all partitions. Debug and fix.</div>
+    <div class="q-meta"><span class="diff hard">Hard</span></div>
+    <span class="answer-arrow">▼</span>
+  </div>
+  <div class="q-body">
+    <div class="answer-section">
+      <div class="answer-label good">✓ Strong Answer</div>
+      <div class="answer-text"><strong>Diagnosis:</strong> <code>EXPLAIN SELECT * FROM t WHERE dt = '2024-01-15'</code> — check physical plan for PartitionFilters.<br><br>
+      <strong>Common causes:</strong><br>
+      1. <strong>Type mismatch:</strong> dt column is DATE type but you're comparing to STRING. Implicit cast prevents partition pruning. Fix: <code>WHERE dt = DATE('2024-01-15')</code> or <code>CAST('2024-01-15' AS DATE)</code><br>
+      2. <strong>Function applied to partition column:</strong> <code>WHERE YEAR(dt) = 2024</code> — Spark can't prune partitions when partition column is wrapped in a function. Fix: <code>WHERE dt BETWEEN '2024-01-01' AND '2024-12-31'</code><br>
+      3. <strong>Table not partitioned by dt:</strong> Verify with <code>DESCRIBE DETAIL table</code> → partitionColumns<br>
+      4. <strong>Stale statistics:</strong> Run <code>ANALYZE TABLE t COMPUTE STATISTICS FOR COLUMNS dt</code></div>
+    </div>
+  </div>
+</div>
+
+<div class="q-card" data-diff="hard" data-tags="performance caching delta">
+  <div class="q-header" onclick="toggleQ(this)">
+    <div class="q-num hard">82</div>
+    <div class="q-text">What is the difference between Spark's df.cache() and Databricks Delta Cache? When should you use each?</div>
+    <div class="q-meta"><span class="diff hard">Hard</span></div>
+    <span class="answer-arrow">▼</span>
+  </div>
+  <div class="q-body">
+    <div class="answer-section">
+      <div class="answer-label good">✓ Strong Answer</div>
+      <div class="answer-text"><strong>Spark df.cache():</strong> Caches DataFrame in JVM memory (and optionally disk). Cache key = DataFrame's logical plan. Lost on cluster restart. Benefits current session/application only. Subject to GC pressure.<br><br>
+      <strong>Databricks Delta Cache (disk cache):</strong> Caches decompressed Parquet data on executor local SSD. Persistent across Spark jobs (within cluster lifecycle). Shared across all users/notebooks on same cluster. Managed automatically — LRU eviction. Enabled via: <code>spark.databricks.io.cache.enabled=true</code><br><br>
+      <strong>Choose Spark cache:</strong> Small intermediate DataFrames reused multiple times within ONE Spark application. Ad-hoc analysis where you compute a filtered DataFrame and use it 3+ times.<br><br>
+      <strong>Choose Delta Cache:</strong> Large Delta tables frequently queried by multiple users/jobs. Production dashboard tables, Gold layer with frequent BI tool queries. Set-and-forget — no explicit cache call needed.</div>
+    </div>
+  </div>
+</div>
+
+<div class="q-card" data-diff="hard" data-tags="performance photon databricks">
+  <div class="q-header" onclick="toggleQ(this)">
+    <div class="q-num hard">83</div>
+    <div class="q-text">What is Databricks Photon and how does it interact with Delta Lake specifically?</div>
+    <div class="q-meta"><span class="diff hard">Hard</span></div>
+    <span class="answer-arrow">▼</span>
+  </div>
+  <div class="q-body">
+    <div class="answer-section">
+      <div class="answer-label good">✓ Strong Answer</div>
+      <div class="answer-text">Photon is Databricks' C++-based vectorized query engine that replaces the JVM-based Spark SQL execution engine for supported operations. It processes data in columnar batches using SIMD instructions — far more CPU-efficient than JVM row-by-row processing.<br><br>
+      <strong>Delta-specific optimizations in Photon:</strong><br>
+      ▸ Vectorized Parquet reader (reads Delta's Parquet files in columnar batches)<br>
+      ▸ Native Delta min/max stats evaluation (data skipping in C++ — faster than JVM)<br>
+      ▸ Accelerated Delta write path (faster compression + file writing)<br>
+      ▸ Optimized MERGE execution with vectorized join operators<br><br>
+      <strong>Not all operations use Photon:</strong> Python UDFs still go through JVM→Python bridge. Some complex SQL constructs fall back to Spark. Check Spark UI for "Photon" nodes in physical plan.<br><br>
+      <strong>When to enable:</strong> SQL workloads, Parquet reads, Delta operations. Typically 2-8x faster for eligible operations.</div>
+    </div>
+  </div>
+</div>
+
+<div class="q-card" data-diff="hard" data-tags="performance file size target tuning">
+  <div class="q-header" onclick="toggleQ(this)">
+    <div class="q-num hard">84</div>
+    <div class="q-text">When would you change Delta's default 1GB target file size? What are the implications of smaller vs larger files?</div>
+    <div class="q-meta"><span class="diff hard">Hard</span></div>
+    <span class="answer-arrow">▼</span>
+  </div>
+  <div class="q-body">
+    <div class="answer-section">
+      <div class="answer-label good">✓ Strong Answer</div>
+      <div class="answer-text"><strong>Default 1GB (1073741824 bytes):</strong> Good for large batch queries. Bad for streaming where tasks should complete in seconds.<br><br>
+      <strong>Smaller files (128MB–256MB):</strong> Better for: high-concurrency queries (more parallelism reading smaller files), streaming writes (each micro-batch fits in one file), tables with selective queries that read only a few rows per file. Use: <code>ALTER TABLE t SET TBLPROPERTIES ('delta.targetFileSize' = '134217728')</code><br><br>
+      <strong>Larger files (2GB+):</strong> Better for: sequential full-table scans, tables always read in bulk, cold storage tables rarely queried. Reduces file count, reduces _delta_log overhead.<br><br>
+      <strong>Tuning rule:</strong> Target file size ≈ amount of data read by typical query ÷ (number of executors × 2). Aim for tasks that complete in 1-5 minutes.</div>
+    </div>
+  </div>
+</div>
+
+<div class="q-card" data-diff="hard" data-tags="performance stats analyze">
+  <div class="q-header" onclick="toggleQ(this)">
+    <div class="q-num hard">85</div>
+    <div class="q-text">How does running ANALYZE TABLE affect Delta Lake query performance? When is it necessary?</div>
+    <div class="q-meta"><span class="diff hard">Hard</span></div>
+    <span class="answer-arrow">▼</span>
+  </div>
+  <div class="q-body">
+    <div class="answer-section">
+      <div class="answer-label good">✓ Strong Answer</div>
+      <div class="answer-text"><code>ANALYZE TABLE t COMPUTE STATISTICS</code> computes table-level and column-level statistics stored in the metastore (not in _delta_log). Used by Spark's cost-based optimizer (CBO) to choose optimal join strategies and partition ordering.<br><br>
+      <strong>Delta tables:</strong> Delta collects per-file stats automatically (min/max, nullCount, numRecords) in _delta_log. These are used for data skipping. ANALYZE TABLE adds <strong>table-level cardinality estimates</strong> on top.<br><br>
+      <strong>When necessary:</strong><br>
+      ▸ Complex multi-table joins where Spark chooses wrong join order (CBO needs cardinality to reorder)<br>
+      ▸ After major data changes (skewed distributions)<br>
+      ▸ When broadcast join threshold decisions are wrong<br><br>
+      <strong>When NOT needed:</strong> Simple queries with partition pruning (Delta's own stats sufficient), tables already well-understood by planner.</div>
+    </div>
+  </div>
+</div>
+
+<div class="q-card" data-diff="hard" data-tags="performance partition skew write">
+  <div class="q-header" onclick="toggleQ(this)">
+    <div class="q-num hard">86</div>
+    <div class="q-text">Writing a Delta table partitioned by date and country produces 50,000 tiny files for US (80% of data) and 2 files for each other country. How do you fix the write skew?</div>
+    <div class="q-meta"><span class="diff hard">Hard</span></div>
+    <span class="answer-arrow">▼</span>
+  </div>
+  <div class="q-body">
+    <div class="answer-section">
+      <div class="answer-label good">✓ Strong Answer</div>
+      <div class="answer-text"><strong>Problem:</strong> Partition by country → one task writes all US data → single executor bottleneck → many small files (executor runs out of memory, spills multiple times, creates many output files).<br><br>
+      <strong>Fix 1 — Don't partition by country:</strong> If country has only 200 distinct values but US = 80%, partition by a more balanced column or not at all. Use ZORDER instead.<br><br>
+      <strong>Fix 2 — Repartition before write:</strong><br>
+      <code>df.repartition(200, "country").write.partitionBy("date", "country")</code><br>
+      Forces even distribution of US data across 200 tasks → 200 files for US (fewer, larger).<br><br>
+      <strong>Fix 3 — Use optimized writes (Databricks):</strong> Auto-coalesces per partition — targets 128MB files regardless of partition skew.<br><br>
+      <strong>Fix 4 — Liquid Clustering:</strong> CLUSTER BY (country) manages file distribution automatically.</div>
+    </div>
+  </div>
+</div>
+
+<!-- ===== CATEGORY 11: DATABRICKS-SPECIFIC ===== -->
+<div class="category-header" id="cat-databricks">
+  <span class="cat-icon">🧱</span>
+  <span class="cat-title">Databricks-Specific Features</span>
+  <span class="cat-count">Q87–Q94</span>
+</div>
+
+<div class="q-card" data-diff="med" data-tags="databricks unity catalog permissions">
+  <div class="q-header" onclick="toggleQ(this)">
+    <div class="q-num med">87</div>
+    <div class="q-text">What is Unity Catalog and how does it change Delta Lake table access and governance?</div>
+    <div class="q-meta"><span class="diff med">Medium</span></div>
+    <span class="answer-arrow">▼</span>
+  </div>
+  <div class="q-body">
+    <div class="answer-section">
+      <div class="answer-label good">✓ Strong Answer</div>
+      <div class="answer-text">Unity Catalog (UC) is Databricks' centralized governance layer for all data assets. It provides:<br><br>
+      ▸ <strong>3-level namespace:</strong> catalog.schema.table (vs old 2-level schema.table)<br>
+      ▸ <strong>Fine-grained access control:</strong> Column-level, row-level security via dynamic views<br>
+      ▸ <strong>Data lineage:</strong> Automatic tracking of which notebooks/jobs read/write which tables<br>
+      ▸ <strong>Audit logs:</strong> Every access logged to cloud-native audit system<br>
+      ▸ <strong>External locations:</strong> Managed credentials for ADLS/S3 access without cluster-level credentials<br>
+      ▸ <strong>Delta Sharing:</strong> Share Delta tables with external organizations without data copy<br><br>
+      <strong>Impact on Delta:</strong> UC-managed tables stored in Unity Catalog-controlled ADLS locations. Column mapping required for rename/drop operations. Uniform format (Iceberg compatibility) enabled at UC level.</div>
+    </div>
+  </div>
+</div>
+
+<div class="q-card" data-diff="hard" data-tags="databricks row level security">
+  <div class="q-header" onclick="toggleQ(this)">
+    <div class="q-num hard">88</div>
+    <div class="q-text">How do you implement row-level security on a Delta table in Databricks Unity Catalog?</div>
+    <div class="q-meta"><span class="diff hard">Hard</span></div>
+    <span class="answer-arrow">▼</span>
+  </div>
+  <div class="q-body">
+    <div class="code-block"><pre><span class="cm">-- Create dynamic view that filters by current user's region</span>
+CREATE OR REPLACE VIEW catalog.schema.orders_secure AS
+SELECT * FROM catalog.schema.orders_raw
+WHERE region IN (
+  SELECT allowed_region
+  FROM catalog.schema.user_region_access
+  WHERE username = current_user()
+)
+OR IS_ACCOUNT_GROUP_MEMBER('data-admin');
+
+<span class="cm">-- Grant users access to VIEW only (not raw table)</span>
+GRANT SELECT ON VIEW catalog.schema.orders_secure TO `analysts@company.com`;
+REVOKE SELECT ON TABLE catalog.schema.orders_raw FROM `analysts@company.com`;</pre></div>
+    <div class="answer-section">
+      <div class="answer-label tip">💡 Key Points</div>
+      <div class="answer-text">▸ current_user() is a Dynamic View function — evaluated at query time per user<br>▸ Underlying Delta table is NOT modified — access control is at view layer<br>▸ Column masking: use CASE WHEN current_user() = 'pii-user' THEN ssn ELSE '***' END to mask columns</div>
+    </div>
+  </div>
+</div>
+
+<div class="q-card" data-diff="hard" data-tags="databricks delta sharing">
+  <div class="q-header" onclick="toggleQ(this)">
+    <div class="q-num hard">89</div>
+    <div class="q-text">What is Delta Sharing and how does it work technically? When would you use it over alternatives?</div>
+    <div class="q-meta"><span class="diff hard">Hard</span></div>
+    <span class="answer-arrow">▼</span>
+  </div>
+  <div class="q-body">
+    <div class="answer-section">
+      <div class="answer-label good">✓ Strong Answer</div>
+      <div class="answer-text">Delta Sharing is an open protocol for sharing Delta tables across organizations without data copy. Provider hosts a Delta Sharing server; recipients query via a URL + bearer token.<br><br>
+      <strong>Technically:</strong> Server issues pre-signed URLs to recipient for specific Parquet files + stats. Recipient reads directly from provider's cloud storage using pre-signed URLs. No data duplication. Access can be revoked instantly (invalidate token).<br><br>
+      <strong>Use vs alternatives:</strong><br>
+      ▸ vs Data copy (ETL extract): No storage cost, always fresh data, instant revoke<br>
+      ▸ vs API: Bulk data transfer efficient, no custom API maintenance<br>
+      ▸ vs Snowflake Secure Data Sharing: Works across cloud/platforms (not just Snowflake)<br><br>
+      <strong>Use case:</strong> Partner data exchange, cross-business-unit sharing, regulatory reporting to external auditors.</div>
+    </div>
+  </div>
+</div>
+
+<div class="q-card" data-diff="hard" data-tags="databricks workspace cluster config">
+  <div class="q-header" onclick="toggleQ(this)">
+    <div class="q-num hard">90</div>
+    <div class="q-text">What is the Databricks Workspace architecture and how does it relate to Delta Lake storage on ADLS?</div>
+    <div class="q-meta"><span class="diff hard">Hard</span></div>
+    <span class="answer-arrow">▼</span>
+  </div>
+  <div class="q-body">
+    <div class="answer-section">
+      <div class="answer-label good">✓ Strong Answer</div>
+      <div class="answer-text"><strong>Databricks = Control plane (Databricks-managed) + Data plane (customer's Azure subscription)</strong><br><br>
+      ▸ Control plane: Web UI, REST API, cluster management, job scheduler — hosted in Databricks' Azure tenant<br>
+      ▸ Data plane: VMs (clusters), ADLS Gen2 storage — in customer's Azure subscription/VNet<br><br>
+      <strong>ADLS interaction:</strong> Clusters mount ADLS via service principal credentials or managed identity. Delta Lake files physically reside in customer's ADLS account. Databricks control plane never touches data directly.<br><br>
+      <strong>Unity Catalog:</strong> Adds a metastore in customer's Azure storage account. UC-managed tables are stored in a UC-controlled ADLS location (customer-owned). External tables point to customer-managed ADLS paths.<br><br>
+      <strong>Key interview point:</strong> "Databricks doesn't store your data" — it only manages compute and metadata. This is critical for compliance (GDPR, HIPAA, financial regulations).</div>
+    </div>
+  </div>
+</div>
+
+<div class="q-card" data-diff="hard" data-tags="databricks job cluster all purpose">
+  <div class="q-header" onclick="toggleQ(this)">
+    <div class="q-num hard">91</div>
+    <div class="q-text">When would you use a Job Cluster vs an All-Purpose Cluster for running Delta Lake pipelines in Databricks?</div>
+    <div class="q-meta"><span class="diff hard">Hard</span></div>
+    <span class="answer-arrow">▼</span>
+  </div>
+  <div class="q-body">
+    <div class="answer-section">
+      <div class="answer-label good">✓ Strong Answer</div>
+      <div class="answer-text"><strong>All-Purpose Cluster:</strong> Long-running, interactive. Shared across users/notebooks. Databricks Delta Cache warms up over time → fast queries after first runs. Higher cost (runs 24/7 if not properly terminated). Use for: development, ad-hoc analysis, BI dashboard queries.<br><br>
+      <strong>Job Cluster:</strong> Ephemeral — created fresh for each job run, terminated after. No warm cache. Lower cost (pay only for job duration). Isolated — no resource contention with other users. Use for: production batch pipelines, nightly ETL, scheduled OPTIMIZE runs.<br><br>
+      <strong>Cost implication:</strong> Job cluster DBUs ~2x cheaper than all-purpose. For production pipelines: always job cluster unless streaming (needs long-running cluster).<br><br>
+      <strong>Delta Cache on job clusters:</strong> Fresh cluster = cold cache. For read-heavy jobs, Delta Cache warms during the job. Not a problem for batch jobs where cluster cost &lt; re-read cost.</div>
+    </div>
+  </div>
+</div>
+
+<div class="q-card" data-diff="hard" data-tags="databricks dlt delta live tables">
+  <div class="q-header" onclick="toggleQ(this)">
+    <div class="q-num hard">92</div>
+    <div class="q-text">What is Delta Live Tables (DLT) and how does it differ from writing a standard Spark streaming job to Delta?</div>
+    <div class="q-meta"><span class="diff hard">Hard</span></div>
+    <span class="answer-arrow">▼</span>
+  </div>
+  <div class="q-body">
+    <div class="answer-section">
+      <div class="answer-label good">✓ Strong Answer</div>
+      <div class="answer-text">Delta Live Tables is a declarative framework for building reliable data pipelines. You define WHAT each table should contain (not HOW to compute it); DLT handles orchestration, error recovery, auto-scaling, and data quality.<br><br>
+      <strong>Key differences from standard streaming:</strong><br>
+      ▸ <strong>Declarative:</strong> @dlt.table decorator defines table — DLT manages execution order<br>
+      ▸ <strong>Auto-managed:</strong> No manual checkpoint management, auto schema evolution, auto OPTIMIZE<br>
+      ▸ <strong>Expectations:</strong> Built-in data quality rules with configurable behavior (warn, drop, fail)<br>
+      ▸ <strong>Dependency management:</strong> DLT builds DAG from table references — no explicit orchestration<br>
+      ▸ <strong>Continuous vs triggered:</strong> Run in continuous (streaming) or triggered (batch) mode from same code<br><br>
+      <strong>Trade-offs:</strong> Less control than raw Spark, more opinionated, Databricks-only, higher DBU cost vs standard clusters.</div>
+    </div>
+  </div>
+</div>
+
+<div class="q-card" data-diff="hard" data-tags="databricks predictive optimization">
+  <div class="q-header" onclick="toggleQ(this)">
+    <div class="q-num hard">93</div>
+    <div class="q-text">What is Predictive Optimization in Databricks and how does it determine when to run OPTIMIZE and VACUUM?</div>
+    <div class="q-meta"><span class="diff hard">Hard</span></div>
+    <span class="answer-arrow">▼</span>
+  </div>
+  <div class="q-body">
+    <div class="answer-section">
+      <div class="answer-label good">✓ Strong Answer</div>
+      <div class="answer-text">Predictive Optimization (Databricks, GA 2024) automatically runs OPTIMIZE and VACUUM on Unity Catalog tables without user scheduling. Databricks analyzes:<br><br>
+      ▸ Table write patterns (how often written, how much data)<br>
+      ▸ Query patterns (filter columns, scan frequency)<br>
+      ▸ Current file health (small file count, wasted space from deleted rows)<br><br>
+      Then decides: when to OPTIMIZE, which ZORDER columns to use, when to VACUUM.<br><br>
+      <strong>Benefits:</strong> Eliminates maintenance toil. Tables always in good physical condition without user intervention. ML-driven scheduling (not fixed-schedule).<br><br>
+      <strong>Limitations:</strong> Unity Catalog tables only. Doesn't support custom ZORDER preferences (uses its own ML-derived columns). May conflict with manual OPTIMIZE runs.<br><br>
+      <strong>Enable:</strong> <code>ALTER TABLE t SET TBLPROPERTIES ('delta.optimizeWrite.enabled' = 'auto')</code> or via UC workspace setting.</div>
+    </div>
+  </div>
+</div>
+
+<div class="q-card" data-diff="hard" data-tags="databricks serverless compute">
+  <div class="q-header" onclick="toggleQ(this)">
+    <div class="q-num hard">94</div>
+    <div class="q-text">How does Databricks Serverless Compute change the Delta Lake operational model compared to classic clusters?</div>
+    <div class="q-meta"><span class="diff hard">Hard</span></div>
+    <span class="answer-arrow">▼</span>
+  </div>
+  <div class="q-body">
+    <div class="answer-section">
+      <div class="answer-label good">✓ Strong Answer</div>
+      <div class="answer-text">Serverless Compute = Databricks manages the compute infrastructure entirely. No cluster configuration, no auto-scaling tuning, no spot instance management.<br><br>
+      <strong>Delta operational changes:</strong><br>
+      ▸ No warm Delta Cache (fresh compute on each query — Databricks mitigates with serverless-side caching)<br>
+      ▸ No executor memory/core configuration — Databricks auto-sizes<br>
+      ▸ Sub-second compute startup (pre-warmed pools)<br>
+      ▸ No need to right-size clusters for Delta jobs<br><br>
+      <strong>Trade-offs:</strong> Less control over Spark configuration (can't set spark.sql.shuffle.partitions etc.). May be more expensive for predictable, long-running jobs (classic cluster amortizes startup cost). Better for sporadic/interactive queries.<br><br>
+      <strong>Delta-specific benefit:</strong> Serverless SQL warehouses have Databricks-managed OPTIMIZE running automatically — tables stay performant without user effort.</div>
+    </div>
+  </div>
+</div>
+
+<!-- ===== CATEGORY 12: DESIGN & PRODUCTION ===== -->
+<div class="category-header" id="cat-design">
+  <span class="cat-icon">🏗️</span>
+  <span class="cat-title">Design & Production Scenarios</span>
+  <span class="cat-count">Q95–Q100</span>
+</div>
+
+<div class="q-card" data-diff="hard" data-tags="design migration parquet delta">
+  <div class="q-header" onclick="toggleQ(this)">
+    <div class="q-num hard">95</div>
+    <div class="q-text">Design a zero-downtime migration of a 50TB Parquet table to Delta Lake. Queries must continue running during migration.</div>
+    <div class="q-meta"><span class="diff hard">Hard</span></div>
+    <span class="answer-arrow">▼</span>
+  </div>
+  <div class="q-body">
+    <div class="answer-section">
+      <div class="answer-label good">✓ Strong Answer</div>
+      <div class="answer-text"><strong>Strategy: In-place conversion (no data copy)</strong><br><br>
+      1. <strong>Create Delta table over existing Parquet:</strong><br>
+      <code>CONVERT TO DELTA parquet.`/mnt/data/my_table` PARTITIONED BY (date STRING)</code><br>
+      Creates _delta_log by scanning Parquet files. No data copy. 50TB table converted in minutes (just reading metadata).<br><br>
+      2. <strong>Verify:</strong> <code>SELECT COUNT(*) FROM delta.`/mnt/data/my_table`</code> — matches original row count<br><br>
+      3. <strong>Switch readers:</strong> Point Spark readers from <code>format("parquet")</code> to <code>format("delta")</code>. Old Parquet readers still work (Delta stores Parquet files).<br><br>
+      4. <strong>Register in metastore:</strong> <code>ALTER TABLE my_table SET LOCATION '/mnt/data/my_table'</code><br><br>
+      5. <strong>Enable features:</strong> Add CDF, constraints, ZORDER — incrementally, no downtime<br><br>
+      <strong>Caveat:</strong> CONVERT TO DELTA doesn't collect per-file stats (no min/max in initial _delta_log). Run <code>CONVERT TO DELTA ... NO STATISTICS</code> first, then <code>OPTIMIZE</code> to generate stats.</div>
+    </div>
+  </div>
+</div>
+
+<div class="q-card" data-diff="hard" data-tags="design multi region replication">
+  <div class="q-header" onclick="toggleQ(this)">
+    <div class="q-num hard">96</div>
+    <div class="q-text">Design a Delta Lake replication strategy for a multi-region active-active setup where writes happen in both US and EU regions.</div>
+    <div class="q-meta"><span class="diff hard">Hard</span></div>
+    <span class="answer-arrow">▼</span>
+  </div>
+  <div class="q-body">
+    <div class="answer-section">
+      <div class="answer-label good">✓ Strong Answer</div>
+      <div class="answer-text"><strong>Fundamental challenge:</strong> Delta Lake doesn't support multi-region active-active natively — concurrent writes to same Delta table from two regions will conflict.<br><br>
+      <strong>Strategy 1 — Regional sharding:</strong> US writes to US Delta table, EU writes to EU Delta table. Periodic DEEP CLONE or ADF replication for cross-region analytics. Each region's table is authoritative for its data.<br><br>
+      <strong>Strategy 2 — Kafka-mediated convergence:</strong> Both regions write to regional Kafka topics. Global Kafka (Confluent Cloud) replicates events cross-region. Single global Spark job reads global Kafka → writes to single Delta (in one region). Reads served regionally via ADLS GRS replicas (read-only).<br><br>
+      <strong>Strategy 3 — Event sourcing:</strong> Immutable event log per region (Delta append-only). Periodically merge/union into unified analytical Delta table. Conflict resolution: last-write-wins per event_id, or business-defined merge rules.<br><br>
+      <strong>GDPR constraint:</strong> EU data cannot leave EU. Strategy 1 (regional sharding) is only GDPR-safe option. Aggregate-only cross-region replication.</div>
+    </div>
+  </div>
+</div>
+
+<div class="q-card" data-diff="hard" data-tags="design incident runbook production">
+  <div class="q-header" onclick="toggleQ(this)">
+    <div class="q-num hard">97</div>
+    <div class="q-text">A production Delta table has 10M rows of corrupted data written by a buggy job that ran for 3 days. Design the recovery plan.</div>
+    <div class="q-meta"><span class="diff hard">Hard</span></div>
+    <span class="answer-arrow">▼</span>
+  </div>
+  <div class="q-body">
+    <div class="answer-section">
+      <div class="answer-label good">✓ Strong Answer</div>
+      <div class="answer-text"><strong>Step 1 — Stop the bleeding:</strong> Immediately disable the buggy job. Validate no further corrupt writes are occurring.<br><br>
+      <strong>Step 2 — Assess scope:</strong> <code>DESCRIBE HISTORY table</code> — identify exact commit versions written by buggy job. Use commitInfo operationParameters to identify job-specific commits.<br><br>
+      <strong>Step 3 — Option A (preferred if bug = overwrite):</strong> <code>RESTORE TABLE t TO VERSION AS OF pre_bug_version</code>. Restores to good state. Verify row counts. Test downstream systems.<br><br>
+      <strong>Step 4 — Option B (if bug = corrupt subset of rows):</strong> Identify corrupt rows (data quality check). <code>DELETE FROM t WHERE corruption_condition</code>. Backfill from source system for the 3-day period.<br><br>
+      <strong>Step 5 — Downstream impact:</strong> Check if Gold tables consumed bad data. May need to re-run Gold jobs for 3-day window. Check BI dashboards for impacted metrics.<br><br>
+      <strong>Step 6 — Prevention:</strong> Add Great Expectations quality gate before Gold promotion. Canary check on new job versions before full deployment.</div>
+    </div>
+  </div>
+</div>
+
+<div class="q-card" data-diff="hard" data-tags="design cost optimization storage">
+  <div class="q-header" onclick="toggleQ(this)">
+    <div class="q-num hard">98</div>
+    <div class="q-text">Your Delta Lake storage costs on ADLS doubled in 3 months. Design a cost reduction plan.</div>
+    <div class="q-meta"><span class="diff hard">Hard</span></div>
+    <span class="answer-arrow">▼</span>
+  </div>
+  <div class="q-body">
+    <div class="answer-section">
+      <div class="answer-label good">✓ Strong Answer</div>
+      <div class="answer-text"><strong>Audit first:</strong> <code>SELECT sum(sizeInBytes) FROM (DESCRIBE DETAIL table) GROUP BY tableName</code> — find largest tables. Check growth rate per table.<br><br>
+      <strong>1. VACUUM aggressively:</strong> Tables with 90-day retention but queries only need 7-day Time Travel? Reduce: <code>RETAIN 168 HOURS</code>. Removes old Parquet files + CDF files.<br><br>
+      <strong>2. OPTIMIZE to reduce file count:</strong> Small files × many = high object store metadata cost (ADLS charges per operation). 50,000 → 500 files = 100x reduction in list operation costs.<br><br>
+      <strong>3. ADLS lifecycle policies:</strong> Bronze files → Cool storage after 30 days → Archive after 180 days. 70% cost reduction on old Bronze data.<br><br>
+      <strong>4. Compression:</strong> Ensure Parquet written with snappy or zstd. Check current compression: <code>pdfinfo file.parquet</code> or inspect Parquet metadata.<br><br>
+      <strong>5. Drop unnecessary columns:</strong> Log tables collecting 200 columns but only 20 queried? Drop via ALTER TABLE DROP COLUMN + OPTIMIZE to rewrite.<br><br>
+      <strong>6. CDF overhead:</strong> Tables with high UPDATE rate + CDF enabled? Calculate CDF storage vs benefit. Disable on tables not using CDF.</div>
+    </div>
+  </div>
+</div>
+
+<div class="q-card" data-diff="hard" data-tags="design testing delta">
+  <div class="q-header" onclick="toggleQ(this)">
+    <div class="q-num hard">99</div>
+    <div class="q-text">How do you write unit and integration tests for a PySpark + Delta Lake transformation pipeline?</div>
+    <div class="q-meta"><span class="diff hard">Hard</span></div>
+    <span class="answer-arrow">▼</span>
+  </div>
+  <div class="q-body">
+    <div class="code-block"><pre><span class="cm"># Unit test with pytest + local SparkSession + Delta Lake in-memory</span>
+<span class="kw">import</span> pytest
+<span class="kw">from</span> pyspark.sql <span class="kw">import</span> SparkSession
+<span class="kw">from</span> delta <span class="kw">import</span> configure_spark_with_delta_pip
+
+@pytest.fixture(scope=<span class="str">"session"</span>)
+<span class="kw">def</span> spark():
+    builder = SparkSession.builder \
+        .master(<span class="str">"local[2]"</span>) \
+        .config(<span class="str">"spark.sql.extensions"</span>, <span class="str">"io.delta.sql.DeltaSparkSessionExtension"</span>) \
+        .config(<span class="str">"spark.sql.catalog.spark_catalog"</span>, <span class="str">"org.apache.spark.sql.delta.catalog.DeltaCatalog"</span>)
+    <span class="kw">return</span> configure_spark_with_delta_pip(builder).getOrCreate()
+
+<span class="kw">def</span> test_scd2_merge(spark, tmp_path):
+    <span class="cm"># Arrange: create target Delta table</span>
+    target_path = str(tmp_path / <span class="str">"target"</span>)
+    target_data = spark.createDataFrame([
+        (<span class="num">1</span>, <span class="str">"Alice"</span>, <span class="str">"active"</span>, True),
+        (<span class="num">2</span>, <span class="str">"Bob"</span>,   <span class="str">"active"</span>, True),
+    ], [<span class="str">"id"</span>, <span class="str">"name"</span>, <span class="str">"status"</span>, <span class="str">"is_current"</span>])
+    target_data.write.format(<span class="str">"delta"</span>).save(target_path)
+    
+    <span class="cm"># Source: Alice changes status</span>
+    source = spark.createDataFrame([(<span class="num">1</span>, <span class="str">"Alice"</span>, <span class="str">"inactive"</span>)], [<span class="str">"id"</span>, <span class="str">"name"</span>, <span class="str">"status"</span>])
+    
+    <span class="cm"># Act</span>
+    upsert_scd2(spark, source, target_path, key_cols=[<span class="str">"id"</span>])
+    
+    <span class="cm"># Assert</span>
+    result = spark.read.format(<span class="str">"delta"</span>).load(target_path)
+    active_alice = result.filter(<span class="str">"id=1 AND is_current=true"</span>)
+    assert active_alice.count() == <span class="num">1</span>
+    assert active_alice.first().status == <span class="str">"inactive"</span>
+    assert result.filter(<span class="str">"id=1"</span>).count() == <span class="num">2</span>  <span class="cm"># old + new row</span></pre></div>
+  </div>
+</div>
+
+<div class="q-card" data-diff="hard" data-tags="design observability data quality monitoring">
+  <div class="q-header" onclick="toggleQ(this)">
+    <div class="q-num hard">100</div>
+    <div class="q-text">Design a comprehensive Delta Lake health monitoring system for a production lakehouse with 500 tables. What metrics would you track and how?</div>
+    <div class="q-meta"><span class="diff hard">Hard</span></div>
+    <span class="answer-arrow">▼</span>
+  </div>
+  <div class="q-body">
+    <div class="answer-section">
+      <div class="answer-label good">✓ Strong Answer</div>
+      <div class="answer-text"><strong>1. File Health Metrics (run nightly):</strong><br>
+      <code>SELECT tableName, numFiles, sizeInBytes/numFiles AS avg_file_size_bytes FROM table_health_view WHERE avg_file_size_bytes &lt; 10*1024*1024</code><br>
+      Alert: avg file size &lt; 10MB → trigger OPTIMIZE<br><br>
+      <strong>2. Freshness SLA:</strong><br>
+      <code>SELECT tableName, MAX(timestamp) AS last_commit, DATEDIFF(NOW(), MAX(timestamp)) AS hours_stale FROM (DESCRIBE HISTORY ...) WHERE hours_stale &gt; SLA_hours</code><br>
+      Alert: Gold table not updated in &gt;6 hours<br><br>
+      <strong>3. Row count anomaly:</strong><br>
+      Track daily row count per table. Alert if &gt;30% deviation from 30-day rolling average.<br><br>
+      <strong>4. Data quality (Great Expectations):</strong><br>
+      Daily checkpoint per critical table. Metrics: null rate per column, uniqueness, value distribution.<br><br>
+      <strong>5. VACUUM lag:</strong><br>
+      Alert if last VACUUM &gt; 14 days → orphan files accumulating, storage cost growing.<br><br>
+      <strong>6. CDF consumer lag:</strong><br>
+      Track last processed version per consumer. Alert if lag &gt; 5 days (approaching VACUUM retention).<br><br>
+      <strong>Dashboard:</strong> All metrics to Azure Monitor / Grafana. PagerDuty alert for SLA breaches. Slack notification for anomalies.</div>
+    </div>
+  </div>
+</div>
+
+</div><!-- end container -->
+
+<script>
+let activeFilter = 'all';
+
+function toggleQ(header) {
+  const card = header.parentElement;
+  const body = card.querySelector('.q-body');
+  card.classList.toggle('open');
+  body.classList.toggle('open');
+}
+
+function setFilter(diff, btn) {
+  activeFilter = diff;
+  document.querySelectorAll('.filter-btn').forEach(b => b.classList.remove('active'));
+  btn.classList.add('active');
+  filterQuestions();
+}
+
+function filterQuestions() {
+  const query = document.getElementById('searchBox').value.toLowerCase();
+  let visible = 0;
+  document.querySelectorAll('.q-card').forEach(card => {
+    const diffMatch = activeFilter === 'all' || card.dataset.diff === activeFilter;
+    const tags = (card.dataset.tags || '').toLowerCase();
+    const text = card.querySelector('.q-text').textContent.toLowerCase();
+    const textMatch = !query || text.includes(query) || tags.includes(query);
+    const show = diffMatch && textMatch;
+    card.classList.toggle('hidden', !show);
+    if (show) visible++;
+  });
+  document.getElementById('countBadge').textContent = visible + ' question' + (visible !== 1 ? 's' : '');
+  document.getElementById('no-results').style.display = visible === 0 ? 'block' : 'none';
+
+  // Hide category headers with no visible questions
+  document.querySelectorAll('.category-header').forEach(header => {
+    let next = header.nextElementSibling;
+    let hasVisible = false;
+    while (next && !next.classList.contains('category-header')) {
+      if (next.classList.contains('q-card') && !next.classList.contains('hidden')) hasVisible = true;
+      next = next.nextElementSibling;
+    }
+    header.style.display = hasVisible ? 'flex' : 'none';
+  });
+}
+
+function scrollTo(id) {
+  const el = document.querySelector(id);
+  if (el) el.scrollIntoView({ behavior: 'smooth', block: 'start' });
+}
+</script>
+</body>
+</html>
